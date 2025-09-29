@@ -1,0 +1,9 @@
+{
+	"id": "NnL2NEyAZu7qMi4",
+	"json": "{\"id\":\"NnL2NEyAZu7qMi4\",\"url\":\"https://www.flipkart.com/samsung-galaxy-a05s-black-128-gb/p/itm12ab68373c8ad?pid=MOBGTZ6W2QZBPAPX&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/samsung-galaxy-a05s-black-128-gb/p/itm12ab68373c8ad?pid=MOBGTZ6W2QZBPAPX&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/samsung-galaxy-a05s-black-128-gb/p/itm12ab68373c8ad?marketplace=FLIPKART&pid=MOBGTZ6W2QZBPAPX\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-09-29T11:22:49.134Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/samsung-galaxy-a05s-black-128-gb/p/itm12ab68373c8ad?marketplace=FLIPKART&pid=MOBGTZ6W2QZBPAPX",
+	"url": "https://www.flipkart.com/samsung-galaxy-a05s-black-128-gb/p/itm12ab68373c8ad?pid=MOBGTZ6W2QZBPAPX&marketplace=FLIPKART"
+}

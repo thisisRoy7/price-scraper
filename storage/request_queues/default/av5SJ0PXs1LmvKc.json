@@ -1,0 +1,9 @@
+{
+	"id": "av5SJ0PXs1LmvKc",
+	"json": "{\"id\":\"av5SJ0PXs1LmvKc\",\"url\":\"https://www.flipkart.com/search?q=samsung+galaxy+s24+ultra&page=2\",\"loadedUrl\":\"https://www.flipkart.com/search?q=samsung+galaxy+s24+ultra&page=2\",\"uniqueKey\":\"https://www.flipkart.com/search?page=2&q=samsung+galaxy+s24+ultra\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2025-09-29T11:22:37.626Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/search?page=2&q=samsung+galaxy+s24+ultra",
+	"url": "https://www.flipkart.com/search?q=samsung+galaxy+s24+ultra&page=2"
+}

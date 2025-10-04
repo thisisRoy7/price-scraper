@@ -1,9 +1,0 @@
-{
-	"id": "imKM4I5Fc0vapxz",
-	"json": "{\"id\":\"imKM4I5Fc0vapxz\",\"url\":\"https://www.flipkart.com/samsung-galaxy-f04-jade-purple-64-gb/p/itm0934dc56a1df7?pid=MOBGKY2VTP3XETBR&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/samsung-galaxy-f04-jade-purple-64-gb/p/itm0934dc56a1df7?pid=MOBGKY2VTP3XETBR&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/samsung-galaxy-f04-jade-purple-64-gb/p/itm0934dc56a1df7?marketplace=FLIPKART&pid=MOBGKY2VTP3XETBR\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-09-29T11:22:47.979Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/samsung-galaxy-f04-jade-purple-64-gb/p/itm0934dc56a1df7?marketplace=FLIPKART&pid=MOBGKY2VTP3XETBR",
-	"url": "https://www.flipkart.com/samsung-galaxy-f04-jade-purple-64-gb/p/itm0934dc56a1df7?pid=MOBGKY2VTP3XETBR&marketplace=FLIPKART"
-}

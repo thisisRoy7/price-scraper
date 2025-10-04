@@ -1,9 +1,0 @@
-{
-	"id": "5CsRbVwP5yfdxzh",
-	"json": "{\"id\":\"5CsRbVwP5yfdxzh\",\"url\":\"https://www.flipkart.com/samsung-m55s-thunder-black-128-gb/p/itm8f413dae3cfac?pid=MOBH549ARXFXDBHG&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/samsung-m55s-thunder-black-128-gb/p/itm8f413dae3cfac?pid=MOBH549ARXFXDBHG&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/samsung-m55s-thunder-black-128-gb/p/itm8f413dae3cfac?marketplace=FLIPKART&pid=MOBH549ARXFXDBHG\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-09-29T11:22:47.937Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/samsung-m55s-thunder-black-128-gb/p/itm8f413dae3cfac?marketplace=FLIPKART&pid=MOBH549ARXFXDBHG",
-	"url": "https://www.flipkart.com/samsung-m55s-thunder-black-128-gb/p/itm8f413dae3cfac?pid=MOBH549ARXFXDBHG&marketplace=FLIPKART"
-}

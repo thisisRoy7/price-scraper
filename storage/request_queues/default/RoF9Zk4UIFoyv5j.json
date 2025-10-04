@@ -1,0 +1,9 @@
+{
+	"id": "RoF9Zk4UIFoyv5j",
+	"json": "{\"id\":\"RoF9Zk4UIFoyv5j\",\"url\":\"https://www.flipkart.com/search?q=penguin+select+classic+books&page=3\",\"loadedUrl\":\"https://www.flipkart.com/search?q=penguin+select+classic+books&page=3\",\"uniqueKey\":\"https://www.flipkart.com/search?page=3&q=penguin+select+classic+books\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2025-10-03T16:49:09.316Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/search?page=3&q=penguin+select+classic+books",
+	"url": "https://www.flipkart.com/search?q=penguin+select+classic+books&page=3"
+}

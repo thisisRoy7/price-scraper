@@ -1,0 +1,9 @@
+{
+	"id": "KqGaebKcq0l13kv",
+	"json": "{\"id\":\"KqGaebKcq0l13kv\",\"url\":\"https://www.flipkart.com/awakening-selected-stories/p/itmfc6f2cp6c2azh?pid=9780143134800&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/awakening-selected-stories/p/itmfc6f2cp6c2azh?pid=9780143134800&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/awakening-selected-stories/p/itmfc6f2cp6c2azh?marketplace=FLIPKART&pid=9780143134800\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-03T16:49:09.286Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/awakening-selected-stories/p/itmfc6f2cp6c2azh?marketplace=FLIPKART&pid=9780143134800",
+	"url": "https://www.flipkart.com/awakening-selected-stories/p/itmfc6f2cp6c2azh?pid=9780143134800&marketplace=FLIPKART"
+}

@@ -1,9 +1,0 @@
-{
-	"id": "YrCSeWiBtdP1ajP",
-	"json": "{\"id\":\"YrCSeWiBtdP1ajP\",\"url\":\"https://www.flipkart.com/samsung-galaxy-s24-ultra-5g-titanium-yellow-256-gb/p/itm604cfea4e0d9b?pid=MOBH3P4UWGB8DZTP&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/samsung-galaxy-s24-ultra-5g-titanium-yellow-256-gb/p/itm604cfea4e0d9b?pid=MOBH3P4UWGB8DZTP&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/samsung-galaxy-s24-ultra-5g-titanium-yellow-256-gb/p/itm604cfea4e0d9b?marketplace=FLIPKART&pid=MOBH3P4UWGB8DZTP\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-09-29T11:22:47.965Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/samsung-galaxy-s24-ultra-5g-titanium-yellow-256-gb/p/itm604cfea4e0d9b?marketplace=FLIPKART&pid=MOBH3P4UWGB8DZTP",
-	"url": "https://www.flipkart.com/samsung-galaxy-s24-ultra-5g-titanium-yellow-256-gb/p/itm604cfea4e0d9b?pid=MOBH3P4UWGB8DZTP&marketplace=FLIPKART"
-}

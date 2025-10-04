@@ -1,0 +1,9 @@
+{
+	"id": "NuHg8mWbJO6ZKaZ",
+	"json": "{\"id\":\"NuHg8mWbJO6ZKaZ\",\"url\":\"https://www.flipkart.com/selected-short-stories/p/itmf6r77zqsw8wku?pid=9780140443257&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/selected-short-stories/p/itmf6r77zqsw8wku?pid=9780140443257&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/selected-short-stories/p/itmf6r77zqsw8wku?marketplace=FLIPKART&pid=9780140443257\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-03T16:49:09.064Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/selected-short-stories/p/itmf6r77zqsw8wku?marketplace=FLIPKART&pid=9780140443257",
+	"url": "https://www.flipkart.com/selected-short-stories/p/itmf6r77zqsw8wku?pid=9780140443257&marketplace=FLIPKART"
+}

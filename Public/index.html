@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Comparison Tool</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1> Price Comparison Tool</h1>
+        <p>Enter a product name to compare prices on Amazon and Flipkart.</p>
+        
+        <form id="compare-form">
+            <div class="form-group">
+                <label for="product-name">Product Name</label>
+                <input type="text" id="product-name" placeholder="e.g., iphone 15 pro" required>
+            </div>
+            <div class="form-group">
+                <label for="num-pages">Number of Pages to Scan</label>
+                <input type="number" id="num-pages" value="1" min="1" max="5" required>
+            </div>
+            <button type="submit" id="compare-btn">Compare Prices</button>
+        </form>
+
+        <div class="status-container">
+            <h2>Status Logs</h2>
+            <pre id="log-output">Awaiting comparison...</pre>
+            <div id="loader" class="hidden"></div>
+        </div>
+        
+        <div id="results-grid">
+            </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

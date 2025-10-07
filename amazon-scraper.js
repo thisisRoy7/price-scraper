@@ -8,7 +8,8 @@
  * node amazon_scraper.js "mechanical keyboard" 2
  * 4. The output will be saved to a file like "scraped_amazon_mechanical_keyboard.csv".
  */
-
+const fs = require('fs');
+const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
@@ -134,16 +135,29 @@ async function scrapeAmazon(searchTerm, maxPages) {
     }
   }
 }
-
 // Function to save data to a CSV file
 async function saveToCsv(data, searchTerm) {
   if (data.length === 0) {
     console.log("No data to save.");
     return;
   }
+
+  // --- CHANGES START HERE ---
+
+  // 1. Define the output directory
+  const outputDir = 'amazon_results';
+
+  // 2. Ensure the directory exists
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  // 3. Create the full file path
   const filename = `scraped_amazon_${searchTerm.replace(/\s+/g, '_')}.csv`;
+  const filePath = path.join(outputDir, filename);
+
+  // --- CHANGES END HERE ---
+
   const csvWriter = createCsvWriter({
-    path: filename,
+    path: filePath, // Use the new full file path
     header: [
       { id: 'title', title: 'TITLE' },
       { id: 'price', title: 'PRICE' },
@@ -153,7 +167,7 @@ async function saveToCsv(data, searchTerm) {
   });
   try {
     await csvWriter.writeRecords(data);
-    console.log(`\nSuccess! Data saved to ${filename}`);
+    console.log(`\nSuccess! Data saved to ${filePath}`); // Log the full path
   } catch (error) {
     console.error("Error writing to CSV:", error);
   }

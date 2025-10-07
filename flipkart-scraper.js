@@ -1,15 +1,31 @@
 const { CheerioCrawler, RequestList, log } = require('crawlee');
 const { createObjectCsvWriter } = require('csv-writer');
+const fs = require('fs');   // Add this line
+const path = require('path'); // Add this line
 
-// --- Helper function to save data to CSV (no changes here) ---
+// --- Helper function to save data to CSV ---
 async function saveToCsv(data, searchTerm) {
     if (data.length === 0) {
         log.warning("No data was collected to save.");
         return;
     }
+
+    // --- CHANGES START HERE ---
+
+    // 1. Define the output directory
+    const outputDir = 'flipkart_results';
+
+    // 2. Ensure the directory exists
+    fs.mkdirSync(outputDir, { recursive: true });
+
+    // 3. Create the full file path
     const filename = `scraped_flipkart_${searchTerm.replace(/\s+/g, '_')}.csv`;
+    const filePath = path.join(outputDir, filename);
+
+    // --- CHANGES END HERE ---
+
     const csvWriter = createObjectCsvWriter({
-        path: filename,
+        path: filePath, // Use the new full file path
         header: [
             { id: 'title', title: 'TITLE' },
             { id: 'price', title: 'PRICE' },
@@ -19,7 +35,7 @@ async function saveToCsv(data, searchTerm) {
     });
     try {
         await csvWriter.writeRecords(data);
-        log.info(`✅ Success! Data for ${data.length} products saved to ${filename}`);
+        log.info(`✅ Success! Data for ${data.length} products saved to ${filePath}`);
     } catch (error) {
         log.error("Error writing to CSV:", error);
     }

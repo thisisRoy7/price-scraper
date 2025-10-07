@@ -1,9 +1,0 @@
-{
-	"id": "A65cPHrZigrHiYs",
-	"json": "{\"id\":\"A65cPHrZigrHiYs\",\"url\":\"https://www.flipkart.com/postmaster-selected-short-stories/p/itme8x4j3zvwbm8g?pid=9780140188547&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/postmaster-selected-short-stories/p/itme8x4j3zvwbm8g?pid=9780140188547&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/postmaster-selected-short-stories/p/itme8x4j3zvwbm8g?marketplace=FLIPKART&pid=9780140188547\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-03T16:49:09.175Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/postmaster-selected-short-stories/p/itme8x4j3zvwbm8g?marketplace=FLIPKART&pid=9780140188547",
-	"url": "https://www.flipkart.com/postmaster-selected-short-stories/p/itme8x4j3zvwbm8g?pid=9780140188547&marketplace=FLIPKART"
-}

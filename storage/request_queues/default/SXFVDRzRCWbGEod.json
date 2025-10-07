@@ -1,0 +1,9 @@
+{
+	"id": "SXFVDRzRCWbGEod",
+	"json": "{\"id\":\"SXFVDRzRCWbGEod\",\"url\":\"https://www.flipkart.com/cetaphil-optimal-hydration-activation-serum/p/itm4216941a78f8c?pid=MSCGSMXDPAAKCGP2&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/cetaphil-optimal-hydration-activation-serum/p/itm4216941a78f8c?pid=MSCGSMXDPAAKCGP2&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/cetaphil-optimal-hydration-activation-serum/p/itm4216941a78f8c?marketplace=FLIPKART&pid=MSCGSMXDPAAKCGP2\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-07T16:43:00.089Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/cetaphil-optimal-hydration-activation-serum/p/itm4216941a78f8c?marketplace=FLIPKART&pid=MSCGSMXDPAAKCGP2",
+	"url": "https://www.flipkart.com/cetaphil-optimal-hydration-activation-serum/p/itm4216941a78f8c?pid=MSCGSMXDPAAKCGP2&marketplace=FLIPKART"
+}

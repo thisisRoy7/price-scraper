@@ -1,15 +1,56 @@
 // Import necessary Node.js modules
-const { exec } = require('child_process'); // To run other scripts
-const fs = require('fs'); // To interact with the file system
-const csv = require('csv-parser'); // To parse CSV files
+const { exec } = require('child_process');
+const fs = require('fs');
+const csv = require('csv-parser');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const path = require('path'); // Add this line
+// --- Function to save comparison results to a CSV file ---
+async function saveResultsToCsv(results, productName) {
+    if (!results || results.length === 0) {
+        return;
+    }
 
-// --- Main Function ---
+    // --- CHANGES START HERE ---
+
+    // 1. Define the output directory
+    const outputDir = 'comparison_results';
+
+    // 2. Ensure the directory exists
+    fs.mkdirSync(outputDir, { recursive: true });
+
+    // 3. Create the full file path
+    const sanitizedProductName = productName.replace(/\s+/g, '_');
+    const filename = `comparison_results_${sanitizedProductName}.csv`;
+    const filePath = path.join(outputDir, filename);
+
+    // --- CHANGES END HERE ---
+
+    const csvWriter = createCsvWriter({
+        path: filePath, // Use the new full file path
+        header: [
+            { id: 'title', title: 'TITLE' },
+            { id: 'amazonPrice', title: 'AMAZON_PRICE' },
+            { id: 'flipkartPrice', title: 'FLIPKART_PRICE' },
+            { id: 'winner', title: 'CHEAPER_ON' },
+        ],
+    });
+
+    try {
+        await csvWriter.writeRecords(results);
+        console.error(`[INFO] Comparison results saved to ${filePath}`);
+    } catch (error) {
+        console.error(`[ERROR] Failed to write CSV file: ${error.message}`);
+    }
+}
+
+
+// --- Main Function (with corrected file paths) ---
 async function main() {
-    // This will hold our final structured data
     const output = {
         logs: [],
         results: []
     };
+    let productName = ''; // Define productName here to be accessible in the finally block
 
     try {
         const args = process.argv.slice(2);
@@ -17,12 +58,16 @@ async function main() {
             throw new Error('Please provide a product name and the number of pages.');
         }
 
-        const productName = args[0];
+        productName = args[0]; // Assign value to the higher-scoped variable
         const numPages = args[1];
         
         const sanitizedProductName = productName.replace(/\s+/g, '_');
-        const amazonFile = `scraped_amazon_${sanitizedProductName}.csv`;
-        const flipkartFile = `scraped_flipkart_${sanitizedProductName}.csv`;
+
+        // --- CHANGE IS HERE ---
+        // Point to the correct file paths inside the subfolders
+        const amazonFile = path.join('amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
+        const flipkartFile = path.join('flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
+        // --- END OF CHANGE ---
         
         output.logs.push('🚀 Starting scrapers for Amazon and Flipkart...');
         
@@ -60,7 +105,6 @@ async function main() {
                     }
                 }
                 
-                // Instead of console.log, we push a structured object
                 output.results.push({
                     title: flipkartProduct.title,
                     flipkartPrice: flipkartPrice,
@@ -74,23 +118,20 @@ async function main() {
             output.logs.push("\nCouldn't find any common products between the two sites based on their titles.");
         }
 
+        await saveResultsToCsv(output.results, productName);
+
     } catch (error) {
-        // Capture errors in the log as well
         output.logs.push(`❌ An error occurred: ${error.message}`);
     } finally {
-        // AT THE VERY END, print the entire structured object as a JSON string.
-        // This will be the only thing printed to standard output.
         console.log(JSON.stringify(output, null, 2));
     }
 }
 
-// --- Helper Functions (No changes needed in these) ---
-
+// --- Helper Functions (No changes here) ---
 function runScript(command) {
     return new Promise((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
             if (error) {
-                // We will reject with stderr so it can be caught in the main block
                 return reject(new Error(stderr));
             }
             resolve(stdout);

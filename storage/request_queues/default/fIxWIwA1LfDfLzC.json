@@ -1,9 +1,0 @@
-{
-	"id": "fIxWIwA1LfDfLzC",
-	"json": "{\"id\":\"fIxWIwA1LfDfLzC\",\"url\":\"https://www.flipkart.com/lotus-make-up-nutraglow-daily-tinted-moisturiser-spf-25-fresh-ivory-t2/p/itmec5eeb7db40f7?pid=MSCDHVECJNDZ3GWV&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/lotus-make-up-nutraglow-daily-tinted-moisturiser-spf-25-fresh-ivory-t2/p/itmec5eeb7db40f7?pid=MSCDHVECJNDZ3GWV&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/lotus-make-up-nutraglow-daily-tinted-moisturiser-spf-25-fresh-ivory-t2/p/itmec5eeb7db40f7?marketplace=FLIPKART&pid=MSCDHVECJNDZ3GWV\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-07T16:43:00.339Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/lotus-make-up-nutraglow-daily-tinted-moisturiser-spf-25-fresh-ivory-t2/p/itmec5eeb7db40f7?marketplace=FLIPKART&pid=MSCDHVECJNDZ3GWV",
-	"url": "https://www.flipkart.com/lotus-make-up-nutraglow-daily-tinted-moisturiser-spf-25-fresh-ivory-t2/p/itmec5eeb7db40f7?pid=MSCDHVECJNDZ3GWV&marketplace=FLIPKART"
-}

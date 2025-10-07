@@ -1,0 +1,9 @@
+{
+	"id": "DYEJMljwTSZZAOz",
+	"json": "{\"id\":\"DYEJMljwTSZZAOz\",\"url\":\"https://www.flipkart.com/atulya-matcha-tea-hair-mask/p/itm8050aefbe4678?pid=HTTGEZTYWH9MAYZZ&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/atulya-matcha-tea-hair-mask/p/itm8050aefbe4678?pid=HTTGEZTYWH9MAYZZ&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/atulya-matcha-tea-hair-mask/p/itm8050aefbe4678?marketplace=FLIPKART&pid=HTTGEZTYWH9MAYZZ\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-07T17:52:31.851Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/atulya-matcha-tea-hair-mask/p/itm8050aefbe4678?marketplace=FLIPKART&pid=HTTGEZTYWH9MAYZZ",
+	"url": "https://www.flipkart.com/atulya-matcha-tea-hair-mask/p/itm8050aefbe4678?pid=HTTGEZTYWH9MAYZZ&marketplace=FLIPKART"
+}

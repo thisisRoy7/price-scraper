@@ -1,9 +1,0 @@
-{
-	"id": "EubpmrLp3PHNCYs",
-	"json": "{\"id\":\"EubpmrLp3PHNCYs\",\"url\":\"https://www.flipkart.com/curl-up-intense-hydrating-hair-mask-deep-conditioner-curly-siliconefree/p/itmf3c6a9ffbcc74?pid=HTTGVDS7RENXETVM&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/curl-up-intense-hydrating-hair-mask-deep-conditioner-curly-siliconefree/p/itmf3c6a9ffbcc74?pid=HTTGVDS7RENXETVM&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/curl-up-intense-hydrating-hair-mask-deep-conditioner-curly-siliconefree/p/itmf3c6a9ffbcc74?marketplace=FLIPKART&pid=HTTGVDS7RENXETVM\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-07T17:52:11.580Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/curl-up-intense-hydrating-hair-mask-deep-conditioner-curly-siliconefree/p/itmf3c6a9ffbcc74?marketplace=FLIPKART&pid=HTTGVDS7RENXETVM",
-	"url": "https://www.flipkart.com/curl-up-intense-hydrating-hair-mask-deep-conditioner-curly-siliconefree/p/itmf3c6a9ffbcc74?pid=HTTGVDS7RENXETVM&marketplace=FLIPKART"
-}

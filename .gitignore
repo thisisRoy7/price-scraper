@@ -6,3 +6,4 @@
 *.png
 node_modules
 compare old version
+.txt

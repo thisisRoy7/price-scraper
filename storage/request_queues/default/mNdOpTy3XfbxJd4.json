@@ -1,0 +1,9 @@
+{
+	"id": "mNdOpTy3XfbxJd4",
+	"json": "{\"id\":\"mNdOpTy3XfbxJd4\",\"url\":\"https://www.flipkart.com/swiss-beauty-mascara-sb-10-8-5-ml-black/p/itm46d1b6fa0515b?pid=MCRFGAZ9E28HNTPJ&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/swiss-beauty-mascara-sb-10-8-5-ml-black/p/itm46d1b6fa0515b?pid=MCRFGAZ9E28HNTPJ&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/swiss-beauty-mascara-sb-10-8-5-ml-black/p/itm46d1b6fa0515b?marketplace=FLIPKART&pid=MCRFGAZ9E28HNTPJ\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-08T15:24:37.097Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/swiss-beauty-mascara-sb-10-8-5-ml-black/p/itm46d1b6fa0515b?marketplace=FLIPKART&pid=MCRFGAZ9E28HNTPJ",
+	"url": "https://www.flipkart.com/swiss-beauty-mascara-sb-10-8-5-ml-black/p/itm46d1b6fa0515b?pid=MCRFGAZ9E28HNTPJ&marketplace=FLIPKART"
+}

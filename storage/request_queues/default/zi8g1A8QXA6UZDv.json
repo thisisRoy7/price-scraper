@@ -1,9 +1,0 @@
-{
-	"id": "zi8g1A8QXA6UZDv",
-	"json": "{\"id\":\"zi8g1A8QXA6UZDv\",\"url\":\"https://www.flipkart.com/search?q=curly+hair+mask&page=2\",\"loadedUrl\":\"https://www.flipkart.com/search?q=curly+hair+mask&page=2\",\"uniqueKey\":\"https://www.flipkart.com/search?page=2&q=curly+hair+mask\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2025-10-07T17:52:12.045Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/search?page=2&q=curly+hair+mask",
-	"url": "https://www.flipkart.com/search?q=curly+hair+mask&page=2"
-}

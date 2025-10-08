@@ -1,9 +1,0 @@
-{
-	"id": "AleHmzGYvBRHwkf",
-	"json": "{\"id\":\"AleHmzGYvBRHwkf\",\"url\":\"https://www.flipkart.com/curl-up-intense-bond-repair-hair-mask/p/itma3fdc855e560b?pid=HTTGVDSDM7Q4HCN8&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/curl-up-intense-bond-repair-hair-mask/p/itma3fdc855e560b?pid=HTTGVDSDM7Q4HCN8&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/curl-up-intense-bond-repair-hair-mask/p/itma3fdc855e560b?marketplace=FLIPKART&pid=HTTGVDSDM7Q4HCN8\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-07T17:52:11.286Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/curl-up-intense-bond-repair-hair-mask/p/itma3fdc855e560b?marketplace=FLIPKART&pid=HTTGVDSDM7Q4HCN8",
-	"url": "https://www.flipkart.com/curl-up-intense-bond-repair-hair-mask/p/itma3fdc855e560b?pid=HTTGVDSDM7Q4HCN8&marketplace=FLIPKART"
-}

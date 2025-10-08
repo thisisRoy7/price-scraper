@@ -1,0 +1,9 @@
+{
+	"id": "EBqnmr6UsymGzHj",
+	"json": "{\"id\":\"EBqnmr6UsymGzHj\",\"url\":\"https://www.flipkart.com/apple-iphone-16-white-256-gb/p/itma0ed9b33a2973?pid=MOBH4DQFCU7ZY9HG&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/apple-iphone-16-white-256-gb/p/itma0ed9b33a2973?pid=MOBH4DQFCU7ZY9HG&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/apple-iphone-16-white-256-gb/p/itma0ed9b33a2973?marketplace=FLIPKART&pid=MOBH4DQFCU7ZY9HG\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-08T16:50:14.164Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/apple-iphone-16-white-256-gb/p/itma0ed9b33a2973?marketplace=FLIPKART&pid=MOBH4DQFCU7ZY9HG",
+	"url": "https://www.flipkart.com/apple-iphone-16-white-256-gb/p/itma0ed9b33a2973?pid=MOBH4DQFCU7ZY9HG&marketplace=FLIPKART"
+}

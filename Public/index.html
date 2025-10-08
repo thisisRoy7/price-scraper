@@ -25,15 +25,19 @@
 
         <div class="status-container">
             <h2>Status Logs</h2>
+            <div id="cache-info" class="hidden">
+                <p>
+                    Showing cached data from: <strong id="cache-date"></strong>
+                    <button id="refresh-btn">Refresh Data</button>
+                </p>
+            </div>
             <pre id="log-output">Awaiting comparison...</pre>
             <div id="loader" class="hidden"></div>
         </div>
         
         <div id="results-grid">
-            </div>
-
+        </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

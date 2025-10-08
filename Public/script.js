@@ -1,3 +1,5 @@
+// public/script.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('compare-form');
     const productNameInput = document.getElementById('product-name');
@@ -6,59 +8,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const logOutput = document.getElementById('log-output');
     const loader = document.getElementById('loader');
     const resultsGrid = document.getElementById('results-grid');
+    
+    // --- CHANGE: ADDED NEW ELEMENT SELECTORS ---
+    const cacheInfo = document.getElementById('cache-info');
+    const cacheDate = document.getElementById('cache-date');
+    const refreshBtn = document.getElementById('refresh-btn');
 
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault(); 
-
+    // --- CHANGE: CREATE A REUSABLE FETCH FUNCTION ---
+    const performComparison = async (isRefresh = false) => {
         const productName = productNameInput.value;
         const numPages = numPagesInput.value;
 
-        // --- UI Reset ---
-        logOutput.textContent = 'Preparing to scrape...';
-        resultsGrid.innerHTML = ''; // Clear previous results
+        // UI Reset
+        logOutput.textContent = isRefresh ? 'Refreshing data...' : 'Preparing to scrape...';
+        resultsGrid.innerHTML = '';
+        cacheInfo.classList.add('hidden'); // Always hide cache info on new request
         loader.classList.remove('hidden');
         compareBtn.disabled = true;
         compareBtn.textContent = 'Comparing...';
 
         try {
-            // Fetch JSON data instead of text
             const response = await fetch('/compare', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productName, numPages }),
+                // Add `forceRefresh` flag if it's a refresh action
+                body: JSON.stringify({ productName, numPages, forceRefresh: isRefresh }),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                // Handle server-side errors which might not be in our JSON format
-                throw new Error(data.message || 'An error occurred on the server.');
+                throw new Error(data.error || 'An error occurred on the server.');
             }
 
-            // --- Render Logs and Results ---
+            // Render Logs and Results
             logOutput.textContent = data.logs.join('\n');
-
-            if (data.results && data.results.length > 0) {
-                data.results.forEach(product => {
-                    const card = createProductCard(product);
-                    resultsGrid.appendChild(card);
-                });
-            } else {
-                resultsGrid.innerHTML = '<p>No matching products found to compare.</p>';
+            renderResults(data.results);
+            
+            // --- CHANGE: HANDLE CACHE INFO DISPLAY ---
+            if (data.scrapedOn) {
+                const date = new Date(data.scrapedOn);
+                cacheDate.textContent = date.toLocaleString();
+                cacheInfo.classList.remove('hidden');
             }
 
         } catch (error) {
             console.error('Fetch error:', error);
             logOutput.textContent = `An unexpected error occurred: ${error.message}`;
         } finally {
-            // --- UI Cleanup ---
+            // UI Cleanup
             loader.classList.add('hidden');
             compareBtn.disabled = false;
             compareBtn.textContent = 'Compare Prices';
         }
+    };
+
+    // --- CHANGE: EXTRACTED RESULT RENDERING TO A FUNCTION ---
+    function renderResults(results) {
+        if (results && results.length > 0) {
+            results.forEach(product => {
+                const card = createProductCard(product);
+                resultsGrid.appendChild(card);
+            });
+        } else {
+            resultsGrid.innerHTML = '<p>No matching products found to compare.</p>';
+        }
+    }
+    
+    // Initial form submission
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault(); 
+        performComparison(false); // `false` because this is not a refresh
     });
 
-    // Helper function to create a product card element
+    // --- CHANGE: ADDED EVENT LISTENER FOR THE REFRESH BUTTON ---
+    refreshBtn.addEventListener('click', () => {
+        performComparison(true); // `true` to trigger a forced refresh
+    });
+
+    // Helper function to create a product card element (no changes here)
     function createProductCard(product) {
         const cardElement = document.createElement('div');
         cardElement.className = 'product-card';

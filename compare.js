@@ -1,42 +1,43 @@
+// compare.js
+
 // Import necessary Node.js modules
 const { exec } = require('child_process');
 const fs = require('fs');
 const csv = require('csv-parser');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-const path = require('path'); // Add this line
+const path = require('path');
+
 // --- Function to save comparison results to a CSV file ---
 async function saveResultsToCsv(results, productName) {
     if (!results || results.length === 0) {
         return;
     }
 
-    // --- CHANGES START HERE ---
-
-    // 1. Define the output directory
     const outputDir = 'comparison_results';
-
-    // 2. Ensure the directory exists
     fs.mkdirSync(outputDir, { recursive: true });
 
-    // 3. Create the full file path
     const sanitizedProductName = productName.replace(/\s+/g, '_');
     const filename = `comparison_results_${sanitizedProductName}.csv`;
     const filePath = path.join(outputDir, filename);
 
-    // --- CHANGES END HERE ---
-
     const csvWriter = createCsvWriter({
-        path: filePath, // Use the new full file path
+        path: filePath,
         header: [
             { id: 'title', title: 'TITLE' },
             { id: 'amazonPrice', title: 'AMAZON_PRICE' },
             { id: 'flipkartPrice', title: 'FLIPKART_PRICE' },
             { id: 'winner', title: 'CHEAPER_ON' },
+            // --- CHANGE: ADDED NEW HEADER ---
+            { id: 'scrapedOn', title: 'SCRAPED_ON' },
         ],
     });
 
+    // --- CHANGE: ADD TIMESTAMP TO EACH RECORD ---
+    const timestamp = new Date().toISOString();
+    const recordsToWrite = results.map(record => ({ ...record, scrapedOn: timestamp }));
+
     try {
-        await csvWriter.writeRecords(results);
+        await csvWriter.writeRecords(recordsToWrite); // Write the modified records
         console.error(`[INFO] Comparison results saved to ${filePath}`);
     } catch (error) {
         console.error(`[ERROR] Failed to write CSV file: ${error.message}`);
@@ -63,11 +64,8 @@ async function main() {
         
         const sanitizedProductName = productName.replace(/\s+/g, '_');
 
-        // --- CHANGE IS HERE ---
-        // Point to the correct file paths inside the subfolders
         const amazonFile = path.join('amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
         const flipkartFile = path.join('flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
-        // --- END OF CHANGE ---
         
         output.logs.push('🚀 Starting scrapers for Amazon and Flipkart...');
         

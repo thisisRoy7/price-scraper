@@ -220,3 +220,37 @@ button:disabled {
 .price-box.winner .price {
     font-weight: 700;
 }
+
+#cache-info {
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+#cache-info p {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    color: var(--text-secondary);
+}
+
+#refresh-btn {
+    /* Resetting button styles for a smaller version */
+    width: auto;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+#refresh-btn:hover {
+    background-color: #e9ecef;
+}

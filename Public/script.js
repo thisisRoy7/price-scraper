@@ -14,6 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const cacheDate = document.getElementById('cache-date');
     const refreshBtn = document.getElementById('refresh-btn');
 
+
+    const popularSearchesContainer = document.getElementById('popular-searches-container');
+
+    popularSearchesContainer.addEventListener('click', (event) => {
+        if (event.target.classList.contains('popular-search-btn')) {
+            productNameInput.value = event.target.textContent;
+            form.requestSubmit(); // Automatically submit the form
+        }
+    });
     // --- CHANGE: CREATE A REUSABLE FETCH FUNCTION ---
     const performComparison = async (isRefresh = false) => {
         const productName = productNameInput.value;

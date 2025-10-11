@@ -13,6 +13,7 @@ const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const selectors = require('./selectors.json').amazon; // <-- CHANGE: Import selectors
 
 puppeteer.use(StealthPlugin());
 
@@ -38,19 +39,19 @@ async function scrapeAmazon(searchTerm, maxPages) {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
 
-    // === STEP 1: Mimic human navigation (using your provided method) ===
+    // === STEP 1: Mimic human navigation ===
     console.log('Step 1: Navigating and searching...');
     
     await page.goto('https://www.amazon.in', { waitUntil: 'domcontentloaded' });
     await delay(Math.random() * 2000 + 1000);
 
-    const searchInputSelector = '#twotabsearchtextbox';
-    await page.waitForSelector(searchInputSelector);
-    await page.type(searchInputSelector, searchTerm, { delay: 150 });
+    // --- CHANGES START HERE ---
+    await page.waitForSelector(selectors.searchInput);
+    await page.type(selectors.searchInput, searchTerm, { delay: 150 });
 
-    const searchButtonSelector = '#nav-search-submit-button';
-    await page.hover(searchButtonSelector);
-    await page.click(searchButtonSelector);
+    await page.hover(selectors.searchButton);
+    await page.click(selectors.searchButton);
+    // --- CHANGES END HERE ---
 
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
@@ -58,14 +59,14 @@ async function scrapeAmazon(searchTerm, maxPages) {
     for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
       console.log(`\nScraping Page ${currentPage} of ${maxPages}...`);
 
-      await page.waitForSelector('[data-component-type="s-search-results"]', { timeout: 20000 });
+      await page.waitForSelector(selectors.searchResultsContainer, { timeout: 20000 });
       await page.evaluate(() => { window.scrollBy(0, window.innerHeight * Math.random()); });
       await delay(1000);
 
-      // Collect all product links from the current page (using your provided selector)
+      // Collect all product links from the current page
       console.log('Collecting product links...');
       const productURLs = await page.$$eval(
-        'div[data-component-type="s-search-result"] h2',
+        selectors.productHeadings, // <-- CHANGE
         (headings) => {
           const links = headings.map(h => h.closest('a')?.href);
           return links.filter(href => href && href.includes('/dp/'));
@@ -80,25 +81,25 @@ async function scrapeAmazon(searchTerm, maxPages) {
         try {
           await page.goto(url, { waitUntil: 'domcontentloaded' });
           
-          const titleSelector = '#productTitle';
-          await page.waitForSelector(titleSelector, { timeout: 10000 });
-          const title = await page.$eval(titleSelector, el => el.innerText.trim());
+          // --- CHANGES START HERE ---
+          await page.waitForSelector(selectors.productTitle, { timeout: 10000 });
+          const title = await page.$eval(selectors.productTitle, el => el.innerText.trim());
 
           let price = 'N/A';
           try {
-            const priceSelector = 'span.a-price-whole';
-            await page.waitForSelector(priceSelector, { timeout: 5000 }); // Shorter timeout for price
-            const priceText = await page.$eval(priceSelector, el => el.innerText.trim());
+            await page.waitForSelector(selectors.productPrice, { timeout: 5000 });
+            const priceText = await page.$eval(selectors.productPrice, el => el.innerText.trim());
+            // --- CHANGES END HERE ---
             price = `₹${priceText.replace(/[,.]/g, '')}`;
           } catch (priceError) {
-            console.log(`   -> Could not find price for "${title.substring(0, 40)}...". Setting to N/A.`);
+            console.log(`     -> Could not find price for "${title.substring(0, 40)}...". Setting to N/A.`);
           }
           
           scrapedData.push({ title, price, link: url });
-          console.log(`   -> Scraped: ${title.substring(0, 40)}...`);
+          console.log(`     -> Scraped: ${title.substring(0, 40)}...`);
 
         } catch (err) {
-          console.error(`   -> Failed to scrape data from ${url.substring(0, 60)}... Error: ${err.message}`);
+          console.error(`     -> Failed to scrape data from ${url.substring(0, 60)}... Error: ${err.message}`);
         }
         
         await delay(Math.floor(Math.random() * 2500) + 1500);
@@ -106,8 +107,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
 
       // Go to the next page if not the last page in the loop
       if (currentPage < maxPages) {
-        const nextButtonSelector = 'a.s-pagination-item.s-pagination-next';
-        const nextButton = await page.$(nextButtonSelector);
+        const nextButton = await page.$(selectors.nextPageButton); // <-- CHANGE
         
         if (nextButton) {
           console.log('\nNavigating to the next page...');
@@ -135,29 +135,20 @@ async function scrapeAmazon(searchTerm, maxPages) {
     }
   }
 }
-// Function to save data to a CSV file
+
+// Function to save data to a CSV file (No changes in this function)
 async function saveToCsv(data, searchTerm) {
   if (data.length === 0) {
     console.log("No data to save.");
     return;
   }
-
-  // --- CHANGES START HERE ---
-
-  // 1. Define the output directory
   const outputDir = 'amazon_results';
-
-  // 2. Ensure the directory exists
   fs.mkdirSync(outputDir, { recursive: true });
-
-  // 3. Create the full file path
   const filename = `scraped_amazon_${searchTerm.replace(/\s+/g, '_')}.csv`;
   const filePath = path.join(outputDir, filename);
 
-  // --- CHANGES END HERE ---
-
   const csvWriter = createCsvWriter({
-    path: filePath, // Use the new full file path
+    path: filePath,
     header: [
       { id: 'title', title: 'TITLE' },
       { id: 'price', title: 'PRICE' },
@@ -167,13 +158,13 @@ async function saveToCsv(data, searchTerm) {
   });
   try {
     await csvWriter.writeRecords(data);
-    console.log(`\nSuccess! Data saved to ${filePath}`); // Log the full path
+    console.log(`\nSuccess! Data saved to ${filePath}`);
   } catch (error) {
     console.error("Error writing to CSV:", error);
   }
 }
 
-// Main execution block
+// Main execution block (No changes in this function)
 (async () => {
   const args = process.argv.slice(2); 
 

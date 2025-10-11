@@ -1,0 +1,24 @@
+{
+  "amazon": {
+    "searchInput": "#twotabsearchtextbox",
+    "searchButton": "#nav-search-submit-button",
+    "searchResultsContainer": "[data-component-type='s-search-results']",
+    "productHeadings": "div[data-component-type='s-search-result'] h2",
+    "productTitle": "#productTitle",
+    "productPrice": "span.a-price-whole",
+    "nextPageButton": "a.s-pagination-item.s-pagination-next"
+  },
+  "flipkart": {
+    "productLink": "a[rel='noopener noreferrer'][href*='/p/']",
+    "titleSelectors": [
+      "h1",
+      "meta[property='og:title']",
+      "title"
+    ],
+    "priceSelectors": [
+      "div.Nx9bqj.CxhGGd",
+      "div._30jeq3._16Jk6d",
+      "meta[itemprop='price']"
+    ]
+  }
+}

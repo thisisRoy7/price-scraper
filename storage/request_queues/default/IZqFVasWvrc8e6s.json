@@ -1,9 +1,0 @@
-{
-	"id": "IZqFVasWvrc8e6s",
-	"json": "{\"id\":\"IZqFVasWvrc8e6s\",\"url\":\"https://www.flipkart.com/apple-iphone-16-pro-black-titanium-256-gb/p/itm9ce88307f4033?pid=MOBH4DQFEJYHHM7X&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/apple-iphone-16-pro-black-titanium-256-gb/p/itm9ce88307f4033?pid=MOBH4DQFEJYHHM7X&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/apple-iphone-16-pro-black-titanium-256-gb/p/itm9ce88307f4033?marketplace=FLIPKART&pid=MOBH4DQFEJYHHM7X\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-08T16:50:14.863Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/apple-iphone-16-pro-black-titanium-256-gb/p/itm9ce88307f4033?marketplace=FLIPKART&pid=MOBH4DQFEJYHHM7X",
-	"url": "https://www.flipkart.com/apple-iphone-16-pro-black-titanium-256-gb/p/itm9ce88307f4033?pid=MOBH4DQFEJYHHM7X&marketplace=FLIPKART"
-}

@@ -1,0 +1,9 @@
+{
+	"id": "hPJyYPj6EAYLLez",
+	"json": "{\"id\":\"hPJyYPj6EAYLLez\",\"url\":\"https://www.flipkart.com/apple-iphone-15-pro-natural-titanium-512-gb/p/itm699ded1c1570d?pid=MOBGTAGPCFDXKFHW&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/apple-iphone-15-pro-natural-titanium-512-gb/p/itm699ded1c1570d?pid=MOBGTAGPCFDXKFHW&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/apple-iphone-15-pro-natural-titanium-512-gb/p/itm699ded1c1570d?marketplace=FLIPKART&pid=MOBGTAGPCFDXKFHW\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-11T14:58:42.429Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/apple-iphone-15-pro-natural-titanium-512-gb/p/itm699ded1c1570d?marketplace=FLIPKART&pid=MOBGTAGPCFDXKFHW",
+	"url": "https://www.flipkart.com/apple-iphone-15-pro-natural-titanium-512-gb/p/itm699ded1c1570d?pid=MOBGTAGPCFDXKFHW&marketplace=FLIPKART"
+}

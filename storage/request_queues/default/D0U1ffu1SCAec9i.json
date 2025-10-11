@@ -1,0 +1,9 @@
+{
+	"id": "D0U1ffu1SCAec9i",
+	"json": "{\"id\":\"D0U1ffu1SCAec9i\",\"url\":\"https://www.flipkart.com/apple-iphone-15-plus-green-256-gb/p/itm9784729def342?pid=MOBGTAGPRSYPVZXR&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/apple-iphone-15-plus-green-256-gb/p/itm9784729def342?pid=MOBGTAGPRSYPVZXR&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/apple-iphone-15-plus-green-256-gb/p/itm9784729def342?marketplace=FLIPKART&pid=MOBGTAGPRSYPVZXR\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-11T14:58:42.944Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.flipkart.com/apple-iphone-15-plus-green-256-gb/p/itm9784729def342?marketplace=FLIPKART&pid=MOBGTAGPRSYPVZXR",
+	"url": "https://www.flipkart.com/apple-iphone-15-plus-green-256-gb/p/itm9784729def342?pid=MOBGTAGPRSYPVZXR&marketplace=FLIPKART"
+}

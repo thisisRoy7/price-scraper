@@ -1,31 +1,22 @@
 const { CheerioCrawler, RequestList, log } = require('crawlee');
 const { createObjectCsvWriter } = require('csv-writer');
-const fs = require('fs');   // Add this line
-const path = require('path'); // Add this line
+const fs = require('fs');
+const path = require('path');
+const selectors = require('./selectors.json').flipkart; // <-- CHANGE: Import selectors
 
-// --- Helper function to save data to CSV ---
+// --- Helper function to save data to CSV --- (No changes here)
 async function saveToCsv(data, searchTerm) {
     if (data.length === 0) {
         log.warning("No data was collected to save.");
         return;
     }
-
-    // --- CHANGES START HERE ---
-
-    // 1. Define the output directory
     const outputDir = 'flipkart_results';
-
-    // 2. Ensure the directory exists
     fs.mkdirSync(outputDir, { recursive: true });
-
-    // 3. Create the full file path
     const filename = `scraped_flipkart_${searchTerm.replace(/\s+/g, '_')}.csv`;
     const filePath = path.join(outputDir, filename);
 
-    // --- CHANGES END HERE ---
-
     const csvWriter = createObjectCsvWriter({
-        path: filePath, // Use the new full file path
+        path: filePath,
         header: [
             { id: 'title', title: 'TITLE' },
             { id: 'price', title: 'PRICE' },
@@ -41,35 +32,43 @@ async function saveToCsv(data, searchTerm) {
     }
 }
 
-// --- Helper functions for findTitle and findPrice (no changes here) ---
+
+// --- (REFACTORED) Helper to find title ---
 function findTitle($) {
-    let title = $('h1').first().text().trim();
+    let title;
+
+    // Selector 1: h1 tag
+    title = $(selectors.titleSelectors[0]).first().text().trim();
     if (title) return title;
-    title = $('meta[property="og:title"]').attr('content');
+
+    // Selector 2: meta tag
+    title = $(selectors.titleSelectors[1]).attr('content');
     if (title) return title.trim();
-    title = $('title').text().trim();
+
+    // Selector 3: title tag (as a final fallback)
+    title = $(selectors.titleSelectors[2]).text().trim();
     if (title) return title;
+
     return null;
 }
 
-// --- (MODIFIED) Helper to find price ---
+// --- (REFACTORED) Helper to find price ---
 function findPrice($) {
-    // 1. (NEW) Try the most current, specific selector for the final price
-    let price = $('div.Nx9bqj.CxhGGd').first().text().trim();
+    let price;
+
+    // 1. Try the primary selectors from the JSON file
+    price = $(selectors.priceSelectors[0]).first().text().trim();
     if (price) return price;
 
-    // 2. (OLD) Keep the old specific selector as a fallback
-    price = $('div._30jeq3._16Jk6d').first().text().trim();
+    price = $(selectors.priceSelectors[1]).first().text().trim();
     if (price) return price;
 
-    // 3. (Reliable) Try meta tags
-    price = $('meta[itemprop="price"]').attr('content');
+    price = $(selectors.priceSelectors[2]).attr('content');
     if (price) return `₹${price.trim()}`;
 
-    // 4. (IMPROVED) Generic search that finds elements with a price but ignores any containing "off"
+    // 2. (Reliable Fallback) Generic search that finds elements with a price but ignores discounts
     let priceElem = $('body').find('*').filter((_, el) => {
         const text = $(el).text();
-        // Condition: The text must contain a price format AND must NOT contain the word "off"
         return /\₹[\d,]+/.test(text) && !/off/i.test(text);
     }).first();
 
@@ -77,11 +76,11 @@ function findPrice($) {
         const matched = priceElem.text().match(/\₹[\d,]+/);
         if (matched) return matched[0].trim();
     }
-
-    // 5. (Final Fallback) Check for data-attributes
+    
+    // 3. (Final Fallback) Check for data-attributes
     price = $('[data-price]').attr('data-price') || $('[price]').attr('price');
     if (price) return price.trim();
-
+    
     return null;
 }
 
@@ -89,23 +88,19 @@ function findPrice($) {
 (async () => {
     const args = process.argv.slice(2);
     const productQuery = args[0] || 'mobile';
-    
-    // --- CHANGE 1: Switched from maxProducts to maxPages ---
-    const maxPages = parseInt(args[1], 10) || 3; // Default to 3 pages
+    const maxPages = parseInt(args[1], 10) || 3;
 
     const searchUrl = `https://www.flipkart.com/search?q=${encodeURIComponent(productQuery)}`;
     const requestList = await RequestList.open('flipkart-urls', [searchUrl]);
     
     const allProducts = [];
-    
-    // --- CHANGE 2: Added a counter for pages instead of products ---
     let pagesCrawled = 0;
 
     log.info(`Starting crawl for "${productQuery}". Max pages: ${maxPages}`);
 
     const crawler = new CheerioCrawler({
         requestList,
-        maxRequestsPerCrawl: 500, // Increased to handle more products
+        maxRequestsPerCrawl: 500,
         maxConcurrency: 5,
         requestHandlerTimeoutSecs: 60,
 
@@ -113,17 +108,14 @@ function findPrice($) {
             const url = request.url;
             log.info(`Crawling: ${url}`);
 
-            // --- CHANGE 3: Rewritten logic for handling search vs. product pages ---
-
-            // A) If it's a SEARCH page (contains '/search')
+            // A) If it's a SEARCH page
             if (url.includes('/search')) {
                 pagesCrawled++;
                 log.info(`Processing search page ${pagesCrawled}/${maxPages}...`);
 
-                // Enqueue all product links found on the current search page
+                // Enqueue all product links found on this page
                 await enqueueLinks({
-                    // This selector is more specific to actual product links
-                    selector: 'a[rel="noopener noreferrer"][href*="/p/"]',
+                    selector: selectors.productLink, // <-- CHANGE
                     label: 'product',
                 });
 
@@ -138,7 +130,7 @@ function findPrice($) {
                 }
             }
 
-            // B) If it's a PRODUCT page (labeled 'product')
+            // B) If it's a PRODUCT page
             if (request.userData.label === 'product') {
                 const title = findTitle($);
                 const price = findPrice($);
@@ -154,7 +146,6 @@ function findPrice($) {
                     link: url,
                 });
                 log.info(`✅ Collected: ${title}`);
-                // --- CHANGE 4: Removed the old "productsScraped" counter and crawler.abort() logic ---
             }
         },
 

@@ -1,9 +1,0 @@
-{
-	"id": "TeDFPfxbYO3Fy4J",
-	"json": "{\"id\":\"TeDFPfxbYO3Fy4J\",\"url\":\"https://www.flipkart.com/apple-iphone-16-plus-white-128-gb/p/itm0635ebbf8c665?pid=MOBH4DQF3AJNKARR&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/apple-iphone-16-plus-white-128-gb/p/itm0635ebbf8c665?pid=MOBH4DQF3AJNKARR&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/apple-iphone-16-plus-white-128-gb/p/itm0635ebbf8c665?marketplace=FLIPKART&pid=MOBH4DQF3AJNKARR\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-08T16:50:13.957Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/apple-iphone-16-plus-white-128-gb/p/itm0635ebbf8c665?marketplace=FLIPKART&pid=MOBH4DQF3AJNKARR",
-	"url": "https://www.flipkart.com/apple-iphone-16-plus-white-128-gb/p/itm0635ebbf8c665?pid=MOBH4DQF3AJNKARR&marketplace=FLIPKART"
-}

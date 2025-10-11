@@ -254,3 +254,38 @@ button:disabled {
 #refresh-btn:hover {
     background-color: #e9ecef;
 }
+/* Container padding and soft styling */
+.popular-searches {
+    padding: 12px 0; /* top & bottom padding only */
+    margin-bottom: 20px;
+    background-color: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Flex layout for inline buttons */
+#popular-searches-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Minimalist pill-like buttons */
+.popular-search-btn {
+    width: auto;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.popular-search-btn:hover {
+    background-color: #e9ecef;
+    border-color: #ccc;
+}

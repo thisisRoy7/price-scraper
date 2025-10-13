@@ -9,5 +9,11 @@
     "puppeteer": "^24.22.3",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.0"
+  },
+  "scripts": {
+  "tailwatch": "tailwindcss -i ./src/input.css -o ./public/output.css --watch"
   }
 }

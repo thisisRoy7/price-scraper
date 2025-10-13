@@ -4,59 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Price Comparison Tool</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="output.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
-    <div class="container">
-        <header class="main-header">
-            <h1>Price Comparison Tool</h1>
-            <p>Enter a product to compare prices on Amazon and Flipkart.</p>
+    <div class="bg-cream max-w-4xl mx-auto p-6 md:p-10 border border-border-muted rounded-2xl">
+
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold font-serif bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent mb-2">Price Comparison Tool</h1>
+            <p class="text-lg text-text-secondary">Enter a product to compare prices on Amazon and Flipkart.</p>
         </header>
 
         <form id="compare-form">
-            <div class="form-group">
-                <label for="product-name">Product Name</label>
-                <input type="text" id="product-name" placeholder="e.g., iPhone 15 Pro" required>
+            <div class="mb-5">
+                <label for="product-name" class="block text-sm font-semibold text-text-secondary mb-2">Product Name</label>
+                <input type="text" id="product-name" placeholder="e.g., iPhone 15 Pro" required class="w-full px-4 py-3 text-base border border-border-muted rounded-xl bg-white/50 transition focus:outline-none focus:border-cream-darker focus:ring-4 focus:ring-cream-dark/50">
             </div>
-            <div class="form-group">
-                <label for="num-pages">Number of Pages to Scan</label>
-                <input type="number" id="num-pages" value="1" min="1" max="5" required>
+            <div class="mb-5">
+                <label for="num-pages" class="block text-sm font-semibold text-text-secondary mb-2">Number of Pages to Scan</label>
+                <input type="number" id="num-pages" value="1" min="1" max="5" required class="w-full px-4 py-3 text-base border border-border-muted rounded-xl bg-white/50 transition focus:outline-none focus:border-cream-darker focus:ring-4 focus:ring-cream-dark/50">
             </div>
-            <button type="submit" id="compare-btn">Compare Prices</button>
+            <button type="submit" id="compare-btn" class="w-full py-4 text-lg font-semibold text-text-primary bg-cream-dark rounded-xl cursor-pointer transition hover:bg-cream-darker active:scale-[.98] disabled:bg-slate-400 disabled:cursor-not-allowed">
+                Compare Prices
+            </button>
         </form>
 
-        <div class="popular-searches">
-            <h3>Popular Searches</h3>
-            <div id="popular-searches-container">
-                <button class="popular-search-btn">iPhone 15</button>
-                <button class="popular-search-btn">mascara</button>
-                <button class="popular-search-btn">Samsung Galaxy S24</button>
-                <button class="popular-search-btn">iphone 16 pro</button>
-            </div>
-        </div>
-
-        <div class="status-container">
-            <div class="status-header">
-                <h2>Status</h2>
-                <div id="cache-info" class="hidden">
-                    <span>Cached: <b id="cache-date"></b></span>
-                    <button id="refresh-btn" title="Get the latest prices">Refresh Now</button>
-                </div>
-            </div>
-            
-            <div id="status-display">
-                <span id="status-icon"></span>
-                <span id="status-text">Awaiting comparison...</span>
-                <div id="loader" class="hidden"></div>
+        <div class="my-8 pt-8 border-t border-border-muted">
+            <h3 class="text-base font-semibold text-text-secondary mb-4 text-center">Popular Searches</h3>
+            <div id="popular-searches-container" class="flex flex-wrap justify-center gap-2.5">
+                <button class="popular-search-btn px-4 py-2 text-sm bg-transparent border border-border-muted rounded-full cursor-pointer transition-all text-text-secondary hover:bg-cream-dark hover:text-text-primary hover:border-cream-dark">iPhone 15</button>
+                <button class="popular-search-btn px-4 py-2 text-sm bg-transparent border border-border-muted rounded-full cursor-pointer transition-all text-text-secondary hover:bg-cream-dark hover:text-text-primary hover:border-cream-dark">mascara</button>
+                <button class="popular-search-btn px-4 py-2 text-sm bg-transparent border border-border-muted rounded-full cursor-pointer transition-all text-text-secondary hover:bg-cream-dark hover:text-text-primary hover:border-cream-dark">Samsung Galaxy S24</button>
+                <button class="popular-search-btn px-4 py-2 text-sm bg-transparent border border-border-muted rounded-full cursor-pointer transition-all text-text-secondary hover:bg-cream-dark hover:text-text-primary hover:border-cream-dark">iphone 16 pro</button>
             </div>
         </div>
         
-        <div id="results-header" class="hidden">
-            <h2>Comparison Results</h2>
+        <div class="mt-10 border border-border-muted rounded-xl">
+            <div class="flex justify-between items-center p-5">
+                <h2 class="text-xl font-semibold text-text-primary">Status</h2>
+                <div id="cache-info" class="hidden items-center gap-4 text-sm text-text-secondary">
+                    <span>Cached: <b id="cache-date"></b></span>
+                    <button id="refresh-btn" class="text-xs font-semibold px-3.5 py-2 bg-transparent border border-border-muted text-text-primary rounded-md cursor-pointer transition-all hover:bg-cream-darker">
+                        Refresh Now
+                    </button>
+                </div>
+            </div>
+            <div id="status-display" class="flex items-center p-5 bg-cream-dark/30 border-t border-border-muted transition-colors duration-300 rounded-b-xl">
+                <span id="status-icon" class="text-xl mr-3"></span>
+                <span id="status-text" class="font-medium">Awaiting comparison...</span>
+                <div id="loader" class="hidden border-4 border-gray-200 border-t-cream-darker rounded-full w-5 h-5 animate-spin ml-3"></div>
+            </div>
         </div>
-        <div id="results-grid"></div>
-    </div>
 
+        <div id="results-header" class="hidden mt-12 pb-5 border-b border-border-muted">
+            <h2 class="text-xl font-semibold">Comparison Results</h2>
+        </div>
+        <div id="results-grid" class="grid grid-cols-1 mt-10"></div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

@@ -289,3 +289,85 @@ button:disabled {
     background-color: #e9ecef;
     border-color: #ccc;
 }
+/* Add these new styles to the end of your style.css */
+
+/* --- 6. New Status Header and Cache Info --- */
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px; /* Add space between header and log box */
+}
+
+.status-header h2 {
+    border-bottom: none; /* Remove double border */
+    padding-bottom: 0;
+}
+
+#cache-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+#refresh-btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: auto; /* Override full width */
+}
+
+#refresh-btn:hover {
+    background-color: var(--accent-hover);
+    color: var(--surface-color);
+    border-color: var(--accent-hover);
+}
+
+/* --- 7. New Popular Searches --- */
+.popular-searches {
+    text-align: center;
+    margin: 30px 0 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.popular-searches h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+}
+
+#popular-searches-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.popular-search-btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    color: var(--text-secondary);
+}
+
+.popular-search-btn:hover {
+    background-color: var(--accent-hover);
+    color: var(--surface-color);
+    border-color: var(--accent-hover);
+}

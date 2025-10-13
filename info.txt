@@ -1,1 +1,4 @@
 C:\PROJECTS\Price-scraper
+
+mysql password: BlueTiger!82Wave
+

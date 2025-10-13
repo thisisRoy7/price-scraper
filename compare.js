@@ -4,54 +4,16 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 const csv = require('csv-parser');
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const path = require('path');
 
-// --- Function to save comparison results to a CSV file ---
-async function saveResultsToCsv(results, productName) {
-    if (!results || results.length === 0) {
-        return;
-    }
-
-    const outputDir = 'comparison_results';
-    fs.mkdirSync(outputDir, { recursive: true });
-
-    const sanitizedProductName = productName.replace(/\s+/g, '_');
-    const filename = `comparison_results_${sanitizedProductName}.csv`;
-    const filePath = path.join(outputDir, filename);
-
-    const csvWriter = createCsvWriter({
-        path: filePath,
-        header: [
-            { id: 'title', title: 'TITLE' },
-            { id: 'amazonPrice', title: 'AMAZON_PRICE' },
-            { id: 'flipkartPrice', title: 'FLIPKART_PRICE' },
-            { id: 'winner', title: 'CHEAPER_ON' },
-            // --- CHANGE: ADDED NEW HEADER ---
-            { id: 'scrapedOn', title: 'SCRAPED_ON' },
-        ],
-    });
-
-    // --- CHANGE: ADD TIMESTAMP TO EACH RECORD ---
-    const timestamp = new Date().toISOString();
-    const recordsToWrite = results.map(record => ({ ...record, scrapedOn: timestamp }));
-
-    try {
-        await csvWriter.writeRecords(recordsToWrite); // Write the modified records
-        console.error(`[INFO] Comparison results saved to ${filePath}`);
-    } catch (error) {
-        console.error(`[ERROR] Failed to write CSV file: ${error.message}`);
-    }
-}
-
-
-// --- Main Function (with corrected file paths) ---
 async function main() {
     const output = {
         logs: [],
-        results: []
+        results: [],
+        // --- CHANGE: Add a top-level timestamp ---
+        scrapedOn: new Date().toISOString() 
     };
-    let productName = ''; // Define productName here to be accessible in the finally block
+    let productName = '';
 
     try {
         const args = process.argv.slice(2);
@@ -59,11 +21,10 @@ async function main() {
             throw new Error('Please provide a product name and the number of pages.');
         }
 
-        productName = args[0]; // Assign value to the higher-scoped variable
+        productName = args[0];
         const numPages = args[1];
         
         const sanitizedProductName = productName.replace(/\s+/g, '_');
-
         const amazonFile = path.join('amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
         const flipkartFile = path.join('flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
         
@@ -93,14 +54,10 @@ async function main() {
                 
                 const flipkartPrice = parsePrice(flipkartProduct.price);
                 const amazonPrice = parsePrice(amazonMatch.price);
-
                 let winner = 'Same Price';
                 if (!isNaN(flipkartPrice) && !isNaN(amazonPrice)) {
-                    if (flipkartPrice < amazonPrice) {
-                        winner = 'Flipkart';
-                    } else if (amazonPrice < flipkartPrice) {
-                        winner = 'Amazon';
-                    }
+                    if (flipkartPrice < amazonPrice) winner = 'Flipkart';
+                    else if (amazonPrice < flipkartPrice) winner = 'Amazon';
                 }
                 
                 output.results.push({
@@ -116,22 +73,19 @@ async function main() {
             output.logs.push("\nCouldn't find any common products between the two sites based on their titles.");
         }
 
-        await saveResultsToCsv(output.results, productName);
-
     } catch (error) {
         output.logs.push(`❌ An error occurred: ${error.message}`);
     } finally {
+        // This is crucial: print the final object with logs, results, AND the timestamp
         console.log(JSON.stringify(output, null, 2));
     }
 }
 
-// --- Helper Functions (No changes here) ---
+// --- Helper Functions (No changes needed below) ---
 function runScript(command) {
     return new Promise((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
-            if (error) {
-                return reject(new Error(stderr));
-            }
+            if (error) return reject(new Error(stderr));
             resolve(stdout);
         });
     });
@@ -140,7 +94,7 @@ function runScript(command) {
 function readCsv(filePath) {
     return new Promise((resolve, reject) => {
         if (!fs.existsSync(filePath)) {
-            return reject(new Error(`File not found at ${filePath}. One of the scrapers might have failed.`));
+            return reject(new Error(`File not found at ${filePath}. Scraper might have failed.`));
         }
         const results = [];
         fs.createReadStream(filePath)
@@ -180,5 +134,4 @@ function findMatchingProduct(productToMatch, productList) {
     return highestScore > 0.75 ? bestMatch : null;
 }
 
-// --- Run the main function ---
 main();

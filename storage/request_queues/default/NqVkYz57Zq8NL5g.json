@@ -1,9 +1,0 @@
-{
-	"id": "NqVkYz57Zq8NL5g",
-	"json": "{\"id\":\"NqVkYz57Zq8NL5g\",\"url\":\"https://www.flipkart.com/apple-iphone-15-pink-512-gb/p/itm199cb71dd211d?pid=MOBGTAGPASPYHVXZ&marketplace=FLIPKART\",\"loadedUrl\":\"https://www.flipkart.com/apple-iphone-15-pink-512-gb/p/itm199cb71dd211d?pid=MOBGTAGPASPYHVXZ&marketplace=FLIPKART\",\"uniqueKey\":\"https://www.flipkart.com/apple-iphone-15-pink-512-gb/p/itm199cb71dd211d?marketplace=FLIPKART&pid=MOBGTAGPASPYHVXZ\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"label\":\"product\",\"__crawlee\":{\"crawlDepth\":1,\"enqueueStrategy\":\"same-hostname\",\"state\":4}},\"handledAt\":\"2025-10-11T14:58:43.558Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.flipkart.com/apple-iphone-15-pink-512-gb/p/itm199cb71dd211d?marketplace=FLIPKART&pid=MOBGTAGPASPYHVXZ",
-	"url": "https://www.flipkart.com/apple-iphone-15-pink-512-gb/p/itm199cb71dd211d?pid=MOBGTAGPASPYHVXZ&marketplace=FLIPKART"
-}

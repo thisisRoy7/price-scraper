@@ -8,22 +8,13 @@
 </head>
 <body>
     <div class="container">
-        <h1> Price Comparison Tool</h1>
+        <h1>Price Comparison Tool</h1>
         <p>Enter a product name to compare prices on Amazon and Flipkart.</p>
         
         <form id="compare-form">
             <div class="form-group">
                 <label for="product-name">Product Name</label>
-                <input type="text" id="product-name" placeholder="e.g., iphone 15 pro" required>
-            </div>
-            <div class="popular-searches">
-                <h3>Popular Searches</h3>
-                <div id="popular-searches-container">
-                    <button class="popular-search-btn">iPhone 15</button>
-                    <button class="popular-search-btn">Samsung s24 ultra</button>
-                    <button class="popular-search-btn">Mascara</button>
-                    <button class="popular-search-btn">iphone 16 pro</button>
-                </div>
+                <input type="text" id="product-name" placeholder="e.g., iPhone 15 Pro" required>
             </div>
             <div class="form-group">
                 <label for="num-pages">Number of Pages to Scan</label>
@@ -32,21 +23,31 @@
             <button type="submit" id="compare-btn">Compare Prices</button>
         </form>
 
+        <div class="popular-searches">
+            <h3>Popular Searches</h3>
+            <div id="popular-searches-container">
+                <button class="popular-search-btn">iPhone 15</button>
+                <button class="popular-search-btn">mascara</button>
+                <button class="popular-search-btn">Samsung Galaxy S24</button>
+                <button class="popular-search-btn">iphone 16 pro</button>
+            </div>
+        </div>
+
         <div class="status-container">
-            <h2>Status Logs</h2>
-            <div id="cache-info" class="hidden">
-                <p>
-                    Showing cached data from: <strong id="cache-date"></strong>
-                    <button id="refresh-btn">Refresh Data</button>
-                </p>
+            <div class="status-header">
+                <h2>Status Logs</h2>
+                <div id="cache-info" class="hidden">
+                    <span>Cached: <b id="cache-date"></b></span>
+                    <button id="refresh-btn">Refresh Now</button>
+                </div>
             </div>
             <pre id="log-output">Awaiting comparison...</pre>
             <div id="loader" class="hidden"></div>
         </div>
         
-        <div id="results-grid">
-        </div>
+        <div id="results-grid"></div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>

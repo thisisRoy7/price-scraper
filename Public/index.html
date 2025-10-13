@@ -8,9 +8,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Price Comparison Tool</h1>
-        <p>Enter a product name to compare prices on Amazon and Flipkart.</p>
-        
+        <header class="main-header">
+            <h1>Price Comparison Tool</h1>
+            <p>Enter a product to compare prices on Amazon and Flipkart.</p>
+        </header>
+
         <form id="compare-form">
             <div class="form-group">
                 <label for="product-name">Product Name</label>
@@ -35,16 +37,23 @@
 
         <div class="status-container">
             <div class="status-header">
-                <h2>Status Logs</h2>
+                <h2>Status</h2>
                 <div id="cache-info" class="hidden">
                     <span>Cached: <b id="cache-date"></b></span>
-                    <button id="refresh-btn">Refresh Now</button>
+                    <button id="refresh-btn" title="Get the latest prices">Refresh Now</button>
                 </div>
             </div>
-            <pre id="log-output">Awaiting comparison...</pre>
-            <div id="loader" class="hidden"></div>
+            
+            <div id="status-display">
+                <span id="status-icon"></span>
+                <span id="status-text">Awaiting comparison...</span>
+                <div id="loader" class="hidden"></div>
+            </div>
         </div>
         
+        <div id="results-header" class="hidden">
+            <h2>Comparison Results</h2>
+        </div>
         <div id="results-grid"></div>
     </div>
 

@@ -1,41 +1,46 @@
 /** @type {import('tailwindcss').Config} */
+const defaultTheme = require('tailwindcss/defaultTheme');
+
 module.exports = {
-  content: ["./Public/**/*.{html,js}"],
+  content: ["./*.html", "./script.js"], // Added script.js to the content path
+  // 👇 NEW: Added a safelist to ensure dynamic classes are generated
+  safelist: [
+    'border-amazon',
+    'border-flipkart',
+    'hover:border-amazon',
+    'hover:border-flipkart',
+    'group-hover:text-amazon',
+    'group-hover:text-flipkart'
+  ],
   theme: {
     extend: {
-      colors: {
-        'cream': '#fbf1e3', 
-        'cream-dark': '#e9decb', 
-        'cream-darker': '#d1c5b4',
-        'border-muted': '#d1c5b4',
-        'primary': '#007aff',
-        'primary-hover': '#005ecb',
-        'text-primary': '#1c1c1e',
-        'text-secondary': '#636366',
-        'surface': '#ffffff',
-        'winner-bg': '#e5f2ff',
-        'winner-border': '#007aff',
-        'winner-badge': '#007aff',
-        'status-success': '#28a745',
-        'status-running': '#6c757d',
-        'status-error': '#dc3545',
-        'amazon-orange': '#FF9900',
-        'amazon-dark': '#000000',
-        'flipkart-yellow': '#F8D706',
-        'flipkart-blue': '#1F74BA',
-      },
       fontFamily: {
-        'serif': ['Georgia', 'Times New Roman', 'serif'],
-        'sans': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'serif': ['"Playfair Display"', ...defaultTheme.fontFamily.serif],
+      },
+      colors: {
+        'surface': '#f8fafc',
+        'container': '#f1f5f9',
+        'primary': '#1e293b',
+        'primary-hover': '#0f172a',
+        'accent': '#334152',
+        'text-primary': '#1e293b',
+        'text-secondary': '#475569',
+        'border-light': '#cbd5e1',
+        'border-muted': '#94a3b8',
+        'amazon': '#FF9900',
+        'flipkart': '#2874F0',
+        'success': '#16a34a',
+        'danger': '#dc2626',
+        'warning': '#f59e0b',
       },
       keyframes: {
-        fadeIn: {
-          '0%': { opacity: 0, transform: 'translateY(10px)' },
-          '100%': { opacity: 1, transform: 'translateY(0)' },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         }
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-out forwards',
+        'fade-in': 'fade-in 0.5s ease-out forwards',
       }
     },
   },

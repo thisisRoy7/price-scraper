@@ -2,46 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    background-color: theme('colors.cream');
-    /* 👇 CHANGE: New abstract, thick, flowing pattern */
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3cpath d='M -10 20 C 20 40, 40 0, 70 15 S 110 50, 110 50 M -10 80 C 30 70, 40 100, 70 90 S 110 60, 110 60' fill='none' stroke='%23d1c5b4' stroke-width='10' stroke-linecap='round'/%3e%3c/svg%3e");
-  }
-}
-
 @layer components {
   .price-box {
-    @apply text-center p-2.5 border rounded-lg transition-colors duration-300 relative overflow-hidden w-[120px];
+    /* 👇 CHANGE: Using light theme background color */
+    @apply text-center p-2.5 border-2 rounded-lg transition-all duration-300 bg-surface;
   }
-
-  .amazon-box:hover {
-    @apply border-amazon-orange text-amazon-orange bg-white;
-  }
-
-  .flipkart-box:hover {
-    @apply border-flipkart-blue text-flipkart-blue bg-white;
-  }
-
+  
   .winner::after {
     content: 'Cheapest';
     position: absolute;
     top: -1px;
     right: -1px;
     color: white;
-    background-color: theme('colors.winner-badge');
-    border-radius: 0 8px 0 8px;
+    /* 👇 CHANGE: Using the accent color for the winner badge */
+    background-color: theme('colors.accent');
+    border-radius: 0 6px 0 6px;
     padding: 2px 6px;
     font-size: 0.65rem;
     font-weight: 600;
   }
-
-  .amazon-box.winner:hover::after {
-    background-color: theme('colors.amazon-orange');
-    color: theme('colors.amazon-dark');
-  }
-
-  .status-running { @apply text-status-running; }
-  .status-success { @apply text-status-success; }
-  .status-error { @apply text-status-error; }
 }

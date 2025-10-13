@@ -371,3 +371,8 @@ button:disabled {
     color: var(--surface-color);
     border-color: var(--accent-hover);
 }
+.store-link {
+    text-decoration: none; /* Removes the underline from the link */
+    color: inherit;       /* Makes the link text use the parent's color */
+    display: block;       /* Helps the link fill its container space */
+}

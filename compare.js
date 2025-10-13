@@ -64,7 +64,9 @@ async function main() {
                     title: flipkartProduct.title,
                     flipkartPrice: flipkartPrice,
                     amazonPrice: amazonPrice,
-                    winner: winner
+                    winner: winner,
+                    flipkartLink: flipkartProduct.link, // Add Flipkart's link
+                    amazonLink: amazonMatch.link       // Add Amazon's link
                 });
             }
         }
@@ -91,6 +93,7 @@ function runScript(command) {
     });
 }
 
+// ✅ New, corrected version for compare.js
 function readCsv(filePath) {
     return new Promise((resolve, reject) => {
         if (!fs.existsSync(filePath)) {
@@ -98,9 +101,19 @@ function readCsv(filePath) {
         }
         const results = [];
         fs.createReadStream(filePath)
-            .pipe(csv({ mapHeaders: ({ header }) => header.toLowerCase() }))
+            .pipe(csv()) // We will process headers manually, which is more reliable.
             .on('data', (data) => results.push(data))
-            .on('end', () => resolve(results))
+            .on('end', () => {
+                // Manually convert all keys in each row to lowercase.
+                const lowercasedResults = results.map(row => {
+                    const newRow = {};
+                    for (const key in row) {
+                        newRow[key.toLowerCase()] = row[key];
+                    }
+                    return newRow;
+                });
+                resolve(lowercasedResults);
+            })
             .on('error', (error) => reject(error));
     });
 }

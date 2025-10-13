@@ -106,15 +106,19 @@ document.addEventListener('DOMContentLoaded', () => {
         cardElement.innerHTML = `
             <h3 class="title">${product.title}</h3>
             <div class="prices">
-                <div class="price-box ${amazonWinnerClass}">
-                    <div class="store">Amazon</div>
-                    <div class="price">${formatPrice(product.amazonPrice)}</div>
-                </div>
-                <div class="price-box ${flipkartWinnerClass}">
-                    <div class="store">Flipkart</div>
-                    <div class="price">${formatPrice(product.flipkartPrice)}</div>
-                </div>
-            </div>`;
+                <a href="${product.amazonLink}" target="_blank" rel="noopener noreferrer" class="store-link">
+                    <div class="price-box ${amazonWinnerClass}">
+                        <div class="store">Amazon</div>
+                        <div class="price">${formatPrice(product.amazonPrice)}</div>
+                    </div>
+                </a>
+                <a href="${product.flipkartLink}" target="_blank" rel="noopener noreferrer" class="store-link">
+                    <div class="price-box ${flipkartWinnerClass}">
+                        <div class="store">Flipkart</div>
+                        <div class="price">${formatPrice(product.flipkartPrice)}</div>
+                    </div>
+                </a>
+        </div>`;
         return cardElement;
     }
 });

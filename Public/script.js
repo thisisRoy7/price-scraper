@@ -1,36 +1,95 @@
 let vantaEffect = null;
 
+// An object to hold different easing functions, which control the "feel" of the animation.
+const Easing = {
+    // Starts fast, then slows down. Good for a quick burst.
+    easeOutCubic: t => 1 - Math.pow(1 - t, 3),
+    // Starts fast, but slows down much more dramatically at the end. Perfect for a gentle finish.
+    easeOutQuint: t => 1 - Math.pow(1 - t, 5)
+};
+
+// The NEW animation engine. It uses requestAnimationFrame for maximum smoothness.
+const animateVantaProperty = (property, start, end, duration, easingFunc) => {
+    if (!vantaEffect) return;
+
+    let startTime = null;
+    const range = end - start;
+
+    // The "step" function is called by the browser on every frame.
+    const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const elapsedTime = timestamp - startTime;
+        
+        // Calculate progress from 0.0 to 1.0
+        const progress = Math.min(elapsedTime / duration, 1);
+
+        // Apply the chosen easing function to the progress
+        const easedProgress = easingFunc(progress);
+        const value = start + range * easedProgress;
+
+        // Update the vanta effect
+        vantaEffect.setOptions({ [property]: value });
+
+        // If the animation isn't finished, request the next frame
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        }
+    };
+
+    // Start the animation loop
+    requestAnimationFrame(step);
+};
+
 const triggerRipple = () => {
     if (vantaEffect) {
-        vantaEffect.setOptions({
-            waveHeight: 25.00,
-            waveSpeed: 1.25
-        });
+        // --- All your settings are here for easy tweaking! ---
+        const baseHeight = 7.00;
+        const peakHeight = 9.00;  // CHANGED: Lower peak for a smaller, subtler swell
+        const baseSpeed = 0.75;
+        const peakSpeed = 1.0;  
+
+        const swellDuration = 800;
+        const calmDuration = 6000;   // CHANGED: Increased for a very long, gentle return
+        // --- End of settings ---
+
+        // --- Phase 1: The wave swells up (sharp) ---
+        animateVantaProperty('waveHeight', baseHeight, peakHeight, swellDuration, Easing.easeOutCubic);
+        animateVantaProperty('waveSpeed', baseSpeed, peakSpeed, swellDuration, Easing.easeOutCubic);
+
+        // --- Phase 2: The wave calms down (gentle) ---
         setTimeout(() => {
-            vantaEffect.setOptions({
-                waveHeight: 15.00,
-                waveSpeed: 0.75
-            });
-        }, 500);
+            animateVantaProperty('waveHeight', peakHeight, baseHeight, calmDuration, Easing.easeOutQuint);
+            animateVantaProperty('waveSpeed', peakSpeed, baseSpeed, calmDuration, Easing.easeOutQuint);
+        }, swellDuration);
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
+    // This is your initial Vanta.js setup script
     vantaEffect = VANTA.WAVES({
-        el: "#vanta-bg",
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
-        minHeight: 200.00,
-        minWidth: 200.00,
-        scale: 1.00,
-        scaleMobile: 1.00,
-        color: 0x94a3b8, 
-        shininess: 25.00,
-        waveHeight: 15.00,
-        waveSpeed: 0.75,
-        zoom: 1.00
+    el: "#vanta-bg",
+    mouseControls: false,
+    touchControls: false,
+    gyroControls: false,
+    minHeight: 200.00,
+    minWidth: 200.00,
+    scale: 1.00,
+    scaleMobile: 1.00,
+    color: 0x94a3b8, // The hex code for your 'primary' color
+    
+    // --- KEY PROPERTIES FOR SUBTLE MOTION ---
+
+    // Set the default height of the waves.
+    waveHeight: 7.00, 
+    
+    // This is the most important setting for constant motion.
+    // Any value > 0 creates movement. A small value like this is very subtle.
+    waveSpeed: 1,
+    
+    // Zooming out slightly can make the waves feel larger and calmer.
+    zoom: 1.90
     });
+    vantaEffect.resize();
 
     const form = document.getElementById('compare-form');
     const productNameInput = document.getElementById('product-name');

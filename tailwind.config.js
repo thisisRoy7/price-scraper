@@ -2,8 +2,9 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
-  content: ["./*.html", "./script.js"], // Added script.js to the content path
-  // 👇 NEW: Added a safelist to ensure dynamic classes are generated
+  // 👇 THIS IS THE CORRECTED LINE
+  content: ["./public/**/*.{html,js}"],
+
   safelist: [
     'border-amazon',
     'border-flipkart',

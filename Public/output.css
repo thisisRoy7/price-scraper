@@ -754,7 +754,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .border-t-primary {
   --tw-border-opacity: 1;
-  border-top-color: rgb(39 56 105 / var(--tw-border-opacity));
+  border-top-color: rgb(107 124 133 / var(--tw-border-opacity));
 }
 
 .bg-surface {
@@ -764,12 +764,12 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .bg-container {
   --tw-bg-opacity: 1;
-  background-color: rgb(229 238 247 / var(--tw-bg-opacity));
+  background-color: rgb(227 231 233 / var(--tw-bg-opacity));
 }
 
 .bg-primary {
   --tw-bg-opacity: 1;
-  background-color: rgb(39 56 105 / var(--tw-bg-opacity));
+  background-color: rgb(107 124 133 / var(--tw-bg-opacity));
 }
 
 .p-8 {
@@ -887,12 +887,12 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .text-text-primary {
   --tw-text-opacity: 1;
-  color: rgb(0 16 36 / var(--tw-text-opacity));
+  color: rgb(53 62 67 / var(--tw-text-opacity));
 }
 
 .text-text-secondary {
   --tw-text-opacity: 1;
-  color: rgb(71 85 105 / var(--tw-text-opacity));
+  color: rgb(107 124 133 / var(--tw-text-opacity));
 }
 
 .text-white {
@@ -974,7 +974,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .hover\:border-primary:hover {
   --tw-border-opacity: 1;
-  border-color: rgb(39 56 105 / var(--tw-border-opacity));
+  border-color: rgb(107 124 133 / var(--tw-border-opacity));
 }
 
 .hover\:border-amazon:hover {
@@ -994,7 +994,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .hover\:bg-primary:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(39 56 105 / var(--tw-bg-opacity));
+  background-color: rgb(107 124 133 / var(--tw-bg-opacity));
 }
 
 .hover\:text-white:hover {
@@ -1004,7 +1004,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .focus\:border-primary:focus {
   --tw-border-opacity: 1;
-  border-color: rgb(39 56 105 / var(--tw-border-opacity));
+  border-color: rgb(107 124 133 / var(--tw-border-opacity));
 }
 
 .focus\:outline-none:focus {
@@ -1019,7 +1019,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 
 .focus\:ring-primary\/20:focus {
-  --tw-ring-color: rgb(39 56 105 / 0.2);
+  --tw-ring-color: rgb(107 124 133 / 0.2);
 }
 
 .active\:scale-\[\.98\]:active {

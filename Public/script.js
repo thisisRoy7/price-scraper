@@ -234,7 +234,7 @@ window.addEventListener('load', () => {
 
             const priceBox = document.createElement('div');
             // This now correctly uses hover:border-[platform] because of the safelist
-            let priceBoxClasses = `price-box relative hover:border-${platformLower}`;
+            let priceBoxClasses = `price-box relative hover:border-${platformLower} max-w-[160px] w-full`;
             if (isWinner) {
                 priceBoxClasses += ` winner border-${platformLower}`;
             } else {

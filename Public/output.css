@@ -524,6 +524,11 @@ Ensure the default browser behavior of the `hidden` attribute.
   margin-bottom: 2rem;
 }
 
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .mt-16 {
   margin-top: 4rem;
 }
@@ -598,6 +603,18 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .max-w-4xl {
   max-width: 56rem;
+}
+
+.max-w-6xl {
+  max-width: 72rem;
+}
+
+.max-w-3xl {
+  max-width: 48rem;
+}
+
+.max-w-\[160px\] {
+  max-width: 160px;
 }
 
 @-webkit-keyframes spin {
@@ -1051,14 +1068,6 @@ Ensure the default browser behavior of the `hidden` attribute.
     grid-column: span 3 / span 3;
   }
 
-  .md\:flex-\[8_1_auto\] {
-    flex: 8 1 auto;
-  }
-
-  .md\:flex-\[1_1_auto\] {
-    flex: 1 1 auto;
-  }
-
   .md\:flex-\[8_1_0\] {
     flex: 8 1 0;
   }
@@ -1075,8 +1084,16 @@ Ensure the default browser behavior of the `hidden` attribute.
     flex-direction: row;
   }
 
+  .md\:flex-wrap {
+    flex-wrap: wrap;
+  }
+
   .md\:items-end {
     align-items: flex-end;
+  }
+
+  .md\:items-center {
+    align-items: center;
   }
 
   .md\:p-10 {

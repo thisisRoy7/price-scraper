@@ -16,6 +16,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        'della': ['"Della Respira"', ...defaultTheme.fontFamily.serif],
+        'karoll': ['Karoll', ...defaultTheme.fontFamily.serif],
         'serif': ['"Playfair Display"', ...defaultTheme.fontFamily.serif],
       },
       colors: {

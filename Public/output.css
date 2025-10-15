@@ -830,8 +830,12 @@ Ensure the default browser behavior of the `hidden` attribute.
   text-align: center;
 }
 
-.font-serif {
-  font-family: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+.font-della {
+  font-family: "Della Respira", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.font-karoll {
+  font-family: Karoll, ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 .text-6xl {

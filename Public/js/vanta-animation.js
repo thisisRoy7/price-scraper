@@ -1,4 +1,3 @@
-// A module-scoped variable to hold the Vanta instance.
 let vantaEffect = null;
 
 const Easing = {
@@ -31,10 +30,11 @@ const animateVantaProperty = (property, start, end, duration, easingFunc) => {
 // EXPORT: This function can be imported and used by other scripts.
 export const triggerRipple = () => {
     if (vantaEffect) {
+        // --- MORE SUBTLE VALUES ---
         const baseHeight = 7.00;
-        const peakHeight = 9.00;
+        const peakHeight = 8.00; // Reduced from 9.00
         const baseSpeed = 0.75;
-        const peakSpeed = 1.0;
+        const peakSpeed = 0.90;    // Reduced from 1.0
         const swellDuration = 800;
         const calmDuration = 6000;
 
@@ -61,7 +61,7 @@ export const initVanta = () => {
         scaleMobile: 1.00,
         color: 0x808080,
         waveHeight: 7.00,
-        waveSpeed: 1,
+        waveSpeed: 0.75, // Lowered from 1 for a calmer default state
         zoom: 1.90
     });
     vantaEffect.resize();

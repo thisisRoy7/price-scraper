@@ -23,27 +23,40 @@ window.addEventListener('load', () => {
         statusIcon: document.getElementById('status-icon'),
         statusText: document.getElementById('status-text'),
     };
+    
+    const RIPPLE_DELAY = 400; // ms to delay task so animation can start
 
     // 3. Set up event listeners
+
+    // The SUBMIT event now ONLY handles the logic, not the UI effect.
     elements.form.addEventListener('submit', (e) => {
         e.preventDefault();
-        triggerRipple();
-        // Call the imported function, passing the elements it needs and the renderer function
-        performComparison(false, elements, renderResults);
+        // Give the ripple animation a moment to play before starting the heavy task
+        setTimeout(() => {
+            performComparison(false, elements, renderResults);
+        }, RIPPLE_DELAY);
     });
 
+    // The CLICK on the compare button triggers the ripple.
+    elements.compareBtn.addEventListener('click', triggerRipple);
+
+    // The CLICK on the refresh button triggers both ripple and logic.
     elements.refreshBtn.addEventListener('click', () => {
         triggerRipple();
-        performComparison(true, elements, renderResults);
+        // Give the ripple animation a moment to play before starting the heavy task
+        setTimeout(() => {
+            performComparison(true, elements, renderResults);
+        }, RIPPLE_DELAY);
     });
 
+    // The CLICK on a popular search button triggers the ripple and submits the form.
     elements.popularSearchesContainer.addEventListener('click', (e) => {
         const button = e.target.closest('.popular-search-btn');
         if (button) {
-            triggerRipple();
+            triggerRipple(); // Trigger ripple on physical click
             elements.productNameInput.value = button.textContent;
-            // A modern way to trigger a form submission from code
-            elements.form.requestSubmit();
+            // This will trigger the 'submit' event listener on the form
+            elements.form.requestSubmit(); 
         }
     });
 });

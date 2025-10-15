@@ -75,7 +75,7 @@ window.addEventListener('load', () => {
     minWidth: 200.00,
     scale: 1.00,
     scaleMobile: 1.00,
-    color: 0x6b7c85, // The hex code for your 'primary' color
+    color: 0x808080, // The hex code for your 'primary' color
     
     // --- KEY PROPERTIES FOR SUBTLE MOTION ---
 

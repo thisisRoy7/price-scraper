@@ -515,10 +515,6 @@ Ensure the default browser behavior of the `hidden` attribute.
   z-index: -10;
 }
 
-.col-span-1 {
-  grid-column: span 1 / span 1;
-}
-
 .my-8 {
   margin-top: 2rem;
   margin-bottom: 2rem;
@@ -762,7 +758,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .border-t-primary {
   --tw-border-opacity: 1;
-  border-top-color: rgb(107 124 133 / var(--tw-border-opacity));
+  border-top-color: rgb(53 56 57 / var(--tw-border-opacity));
 }
 
 .bg-surface {
@@ -772,12 +768,12 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .bg-container {
   --tw-bg-opacity: 1;
-  background-color: rgb(227 231 233 / var(--tw-bg-opacity));
+  background-color: rgb(240 240 240 / var(--tw-bg-opacity));
 }
 
 .bg-primary {
   --tw-bg-opacity: 1;
-  background-color: rgb(107 124 133 / var(--tw-bg-opacity));
+  background-color: rgb(53 56 57 / var(--tw-bg-opacity));
 }
 
 .p-8 {
@@ -890,7 +886,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .text-text-primary {
   --tw-text-opacity: 1;
-  color: rgb(53 62 67 / var(--tw-text-opacity));
+  color: rgb(53 56 57 / var(--tw-text-opacity));
 }
 
 .text-text-secondary {
@@ -977,7 +973,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .hover\:border-primary:hover {
   --tw-border-opacity: 1;
-  border-color: rgb(107 124 133 / var(--tw-border-opacity));
+  border-color: rgb(53 56 57 / var(--tw-border-opacity));
 }
 
 .hover\:border-amazon:hover {
@@ -997,7 +993,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .hover\:bg-primary:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(107 124 133 / var(--tw-bg-opacity));
+  background-color: rgb(53 56 57 / var(--tw-bg-opacity));
 }
 
 .hover\:text-white:hover {
@@ -1007,7 +1003,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .focus\:border-primary:focus {
   --tw-border-opacity: 1;
-  border-color: rgb(107 124 133 / var(--tw-border-opacity));
+  border-color: rgb(53 56 57 / var(--tw-border-opacity));
 }
 
 .focus\:outline-none:focus {
@@ -1022,7 +1018,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 
 .focus\:ring-primary\/20:focus {
-  --tw-ring-color: rgb(107 124 133 / 0.2);
+  --tw-ring-color: rgb(53 56 57 / 0.2);
 }
 
 .active\:scale-\[\.98\]:active {
@@ -1051,10 +1047,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 
 @media (min-width: 768px) {
-  .md\:col-span-3 {
-    grid-column: span 3 / span 3;
-  }
-
   .md\:flex-\[8_1_0\] {
     flex: 8 1 0;
   }
@@ -1069,10 +1061,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 
   .md\:basis-\[160px\] {
     flex-basis: 160px;
-  }
-
-  .md\:grid-cols-5 {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .md\:flex-row {

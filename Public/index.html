@@ -22,18 +22,22 @@
                 <p class="text-lg text-text-secondary">Enter a product to compare prices on Amazon and Flipkart.</p>
             </header>
 
-            <form id="compare-form">
-                <div class="mb-5">
+            <form id="compare-form" class="flex flex-col md:flex-row md:items-end gap-3">
+
+                <div class="w-full md:flex-[8_1_0]">
                     <label for="product-name" class="block text-sm font-semibold text-text-secondary mb-2">Product Name</label>
                     <input type="text" id="product-name" placeholder="e.g., iPhone 15 Pro" required class="w-full px-4 py-3 text-base text-text-primary border border-border-light rounded-xl bg-surface transition focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20">
                 </div>
-                <div class="mb-5">
-                    <label for="num-pages" class="block text-sm font-semibold text-text-secondary mb-2">Number of Pages to Scan</label>
+
+                <div class="w-full md:flex-[1_1_0]">
+                    <label for="num-pages" class="block text-sm font-semibold text-text-secondary mb-2">Pages</label>
                     <input type="number" id="num-pages" value="1" min="1" max="5" required class="w-full px-4 py-3 text-base text-text-primary border border-border-light rounded-xl bg-surface transition focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20">
                 </div>
-                <button type="submit" id="compare-btn" class="w-full py-4 text-lg font-semibold text-white bg-primary rounded-xl cursor-pointer transition hover:bg-primary-hover active:scale-[.98] disabled:bg-slate-400 disabled:cursor-not-allowed">
-                    Compare Prices
+
+                <button type="submit" id="compare-btn" class="w-full md:flex-[1_1_0] py-3 px-4 text-base font-semibold text-white bg-primary rounded-xl cursor-pointer transition hover:bg-primary-hover active:scale-[.98] disabled:bg-slate-400 disabled:cursor-not-allowed">
+                    Compare
                 </button>
+                
             </form>
 
             <div class="my-8 pt-8 border-t border-border-muted">

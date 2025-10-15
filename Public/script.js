@@ -176,7 +176,7 @@ window.addEventListener('load', () => {
             loader.classList.add('hidden');
             compareBtn.disabled = false;
             refreshBtn.disabled = false;
-            compareBtn.textContent = 'Compare Prices';
+            compareBtn.textContent = 'Compare';
         }
     };
 

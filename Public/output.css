@@ -488,7 +488,7 @@ Ensure the default browser behavior of the `hidden` attribute.
   right: -1px;
   color: white;
   /* 👇 CHANGE: Using the accent color for the winner badge */
-  background-color: #334152;
+  background-color: #353839;
   border-radius: 0 6px 0 6px;
   padding: 2px 6px;
   font-size: 0.65rem;

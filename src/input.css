@@ -15,7 +15,7 @@
     right: -1px;
     color: white;
     /* 👇 CHANGE: Using the accent color for the winner badge */
-    background-color: theme('colors.accent');
+    background-color: theme('colors.primary');
     border-radius: 0 6px 0 6px;
     padding: 2px 6px;
     font-size: 0.65rem;

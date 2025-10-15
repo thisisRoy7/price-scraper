@@ -20,30 +20,30 @@
         <div class="bg-container p-6 md:p-10 rounded-2xl shadow-lg">
 
             <header class="text-center mb-10">
-                <h1 class="text-6xl font-bold font-della text-text-primary mb-2">MarketWatch</h1>
-                <p class="text-lg font-karoll text-text-secondary">Enter a product to compare prices on Amazon and Flipkart.</p>
+                <h1 class="text-6xl font-bold font-karoll text-text-primary mb-2">MarketWatch</h1>
+                <p class="text-lg font-della text-text-secondary">Enter a product to compare prices on Amazon and Flipkart.</p>
             </header>
 
             <form id="compare-form" class="flex flex-col md:flex-row md:items-end gap-3">
 
                 <div class="w-full md:flex-[8_1_0]">
-                    <label for="product-name" class="block text-sm font-semibold font-karoll text-text-secondary mb-2">Product Name</label>
+                    <label for="product-name" class="block text-sm font-semibold font-della text-text-secondary mb-2">Product Name</label>
                     <input type="text" id="product-name" placeholder="e.g., iPhone 15 Pro" required class="w-full px-4 py-3 text-base text-text-primary border border-border-light rounded-xl bg-surface transition focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20">
                 </div>
 
                 <div class="w-full md:flex-[1_1_0]">
-                    <label for="num-pages" class="block text-sm font-semibold font-karoll text-text-secondary mb-2">Pages</label>
+                    <label for="num-pages" class="block text-sm font-semibold font-della text-text-secondary mb-2">Pages</label>
                     <input type="number" id="num-pages" value="1" min="1" max="5" required class="w-full px-4 py-3 text-base text-text-primary border border-border-light rounded-xl bg-surface transition focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20">
                 </div>
 
-                <button type="submit" id="compare-btn" class="w-full md:flex-[1_1_0] py-3 px-4 text-base font-semibold font-karoll text-white bg-primary rounded-xl cursor-pointer transition hover:bg-primary-hover active:scale-[.98] disabled:bg-slate-400 disabled:cursor-not-allowed">
+                <button type="submit" id="compare-btn" class="w-full md:flex-[1_1_0] py-3 px-4 text-base font-semibold font-della text-white bg-primary rounded-xl cursor-pointer transition hover:bg-primary-hover active:scale-[.98] disabled:bg-slate-400 disabled:cursor-not-allowed">
                     Compare
                 </button>
                 
             </form>
 
             <div class="my-8 pt-8 border-t border-border-muted">
-                <h3 class="text-base font-semibold font-karoll text-text-secondary mb-4 text-center">Popular Searches</h3>
+                <h3 class="text-base font-semibold font-della text-text-secondary mb-4 text-center">Popular Searches</h3>
                 <div id="popular-searches-container" class="flex flex-wrap justify-center gap-2.5">
                     <button class="popular-search-btn px-4 py-2 text-sm bg-container border border-border-light rounded-full cursor-pointer transition-all text-text-secondary hover:bg-primary hover:text-white hover:border-primary">iPhone 15</button>
                     <button class="popular-search-btn px-4 py-2 text-sm bg-container border border-border-light rounded-full cursor-pointer transition-all text-text-secondary hover:bg-primary hover:text-white hover:border-primary">mascara</button>
@@ -54,7 +54,7 @@
             
             <div class="mt-10 rounded-xl bg-container border border-border-muted">
                 <div class="flex justify-between items-center p-5">
-                    <h2 class="text-xl font-semibold font-karoll text-text-primary">Status</h2>
+                    <h2 class="text-xl font-semibold font-della text-text-primary">Status</h2>
                     <div id="cache-info" class="hidden items-center gap-4 text-sm text-text-secondary">
                         <span>Cached: <b id="cache-date" class="text-text-primary"></b></span>
                         <button id="refresh-btn" class="text-xs font-semibold px-3.5 py-2 bg-container border border-border-light text-text-primary rounded-md cursor-pointer transition-all hover:bg-primary hover:text-white hover:border-primary">
@@ -78,6 +78,6 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.waves.min.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="/js/main.js"></script>
 </body>
 </html>

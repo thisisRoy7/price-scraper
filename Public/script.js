@@ -214,10 +214,10 @@ window.addEventListener('load', () => {
 
         const cardElement = document.createElement('div');
         // 👇 CHANGE: Using hover:scale-105 for better compatibility
-        cardElement.className = 'grid grid-cols-1 md:grid-cols-5 items-center gap-4 py-6 border-b border-border-muted animate-fade-in opacity-0 transition-transform duration-300 hover:scale-105';
+        cardElement.className = 'flex flex-col md:flex-row md:items-start md:flex-wrap gap-4 py-6 border-b border-border-muted animate-fade-in opacity-0 transition-transform duration-300';
 
         const title = document.createElement('h3');
-        title.className = 'col-span-1 md:col-span-3 text-base font-semibold text-text-primary leading-relaxed';
+        title.className = 'w-full md:basis-full text-base font-semibold text-text-primary leading-relaxed';
         title.textContent = product.title;
         cardElement.appendChild(title);
 
@@ -229,7 +229,7 @@ window.addEventListener('load', () => {
             a.href = link;
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
-            a.className = 'no-underline text-inherit block col-span-1 group';
+            a.className = 'no-underline text-inherit w-full md:basis-[160px] group';
             a.setAttribute('aria-label', `View ${product.title} on ${platform} for ${formatPrice(price)}`);
 
             const priceBox = document.createElement('div');

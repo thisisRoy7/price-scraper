@@ -1,3 +1,5 @@
+//Comparison Block/compare.js
+
 // Import necessary Node.js modules
 const { exec } = require('child_process');
 const fs = require('fs');
@@ -24,25 +26,20 @@ async function main() {
         const numPages = args[1];
         
         // ---
-        // --- CHANGE #1 (File Paths) ---
-        // --- Paths now go UP one level ('..') from "Comparison Block"
+        // --- File Paths ---
         // ---
         const sanitizedProductName = productName.replace(/\s+/g, '_');
-        // Use path.join(__dirname, '..', ...) to get the correct path from the main project folder
         const amazonFile = path.join(__dirname, '..', 'amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
         const flipkartFile = path.join(__dirname, '..', 'flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
         
         output.logs.push('🚀 Starting scrapers for Amazon and Flipkart...');
         
         // ---
-        // --- CHANGE #1 (Script Commands) ---
-        // --- Build absolute paths to the scraper scripts using __dirname
-        // --- This makes the commands runnable from anywhere
+        // --- Script Commands ---
         // ---
         const amazonScraperPath = path.join(__dirname, '..', 'amazon-scraper.js');
         const flipkartScraperPath = path.join(__dirname, '..', 'flipkart-scraper.js');
 
-        // Enclose paths in quotes in case of spaces in the full path
         const amazonCommand = `node "${amazonScraperPath}" "${productName}" ${numPages}`;
         const flipkartCommand = `node "${flipkartScraperPath}" "${productName}" ${numPages}`;
 
@@ -80,7 +77,8 @@ async function main() {
                     winner: winner,
                     flipkartLink: flipkartProduct.link,
                     amazonLink: amazonMatch.link,
-                    // --- (NEW) Add the image URLs to the final object ---
+                    // --- THIS IS THE KEY ---
+                    // You are correctly adding the image URLs here
                     flipkartImage: flipkartProduct.image_url, 
                     amazonImage: amazonMatch.image_url 
                 });
@@ -92,13 +90,9 @@ async function main() {
         }
 
     } catch (error) {
-        // Log the error message directly
         output.logs.push(`❌ An error occurred: ${error.message}`);
     } finally {
-        // ---
-        // --- CHANGE #2 (JSON Output) ---
-        // --- Removed 'null, 2' to print JSON on a single line
-        // ---
+        // Print the single-line JSON output for the server
         console.log(JSON.stringify(output));
     }
 }
@@ -106,10 +100,8 @@ async function main() {
 // --- Helper Functions ---
 function runScript(command) {
     return new Promise((resolve, reject) => {
-        // Increase buffer size in case scrapers output a lot of logs
         exec(command, { maxBuffer: 1024 * 5000 }, (error, stdout, stderr) => {
             if (error) {
-                // Combine stdout and stderr for a complete error log
                 return reject(new Error(`Error: ${error.message}\nStderr: ${stderr}\nStdout: ${stdout}`));
             }
             resolve(stdout);
@@ -120,7 +112,6 @@ function runScript(command) {
 function readCsv(filePath) {
     return new Promise((resolve, reject) => {
         if (!fs.existsSync(filePath)) {
-            // This error message is now very helpful for debugging path issues
             return reject(new Error(`File not found at ${filePath}. Scraper might have failed.`));
         }
         const results = [];
@@ -131,7 +122,7 @@ function readCsv(filePath) {
                 const lowercasedResults = results.map(row => {
                     const newRow = {};
                     for (const key in row) {
-                        // Standardize keys: (TITLE -> title, IMAGE_URL -> image_url)
+                        // This correctly converts TITLE -> title, IMAGE_URL -> image_url
                         newRow[key.toLowerCase()] = row[key];
                     }
                     return newRow;

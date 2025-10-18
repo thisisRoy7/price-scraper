@@ -1,14 +1,36 @@
+// This function creates a single product card
 function createProductCard(product) {
     const formatPrice = (price) => isNaN(price) || price === null ? 'N/A' : `₹${price.toLocaleString('en-IN')}`;
 
     const cardElement = document.createElement('div');
     cardElement.className = 'flex flex-col md:flex-row md:items-start md:flex-wrap gap-4 py-6 border-b border-border-muted animate-fade-in opacity-0';
 
+    // 1. Title (Full width)
     const title = document.createElement('h3');
     title.className = 'w-full md:basis-full text-base font-semibold text-text-primary leading-relaxed';
     title.textContent = product.title;
-    cardElement.appendChild(title);
+    
+    // --- Image Container ---
+    const imageContainer = document.createElement('div');
+    imageContainer.className = 'w-full md:basis-24 flex justify-center md:justify-start'; 
 
+    const imageWrapper = document.createElement('div');
+    // --- CHANGED ---
+    // Added 'border-2' (medium thickness) and 'border-black' (solid black color)
+    // Removed 'border' and 'border-border-light'
+    imageWrapper.className = 'w-24 h-24 rounded-md overflow-hidden flex-shrink-0 border-2 border-border-muted'; // <-- Change 'border-black' to any Tailwind color
+    
+    const img = document.createElement('img');
+    img.src = product.flipkartImage || product.amazonImage; 
+    img.alt = product.title;
+    img.className = 'w-full h-full object-cover'; 
+
+    imageWrapper.appendChild(img);
+    imageContainer.appendChild(imageWrapper);
+    // --- End of Image Container ---
+
+
+    // 3. Price Link Creator Function
     const createPriceLink = (platform, link, price, winner) => {
         const platformLower = platform.toLowerCase();
         const isWinner = winner === platform;
@@ -42,10 +64,12 @@ function createProductCard(product) {
         return a;
     };
 
+    // 4. Create Price Links
     const amazonLink = createPriceLink('Amazon', product.amazonLink, product.amazonPrice, product.winner);
     const flipkartLink = createPriceLink('Flipkart', product.flipkartLink, product.flipkartPrice, product.winner);
 
-    cardElement.append(amazonLink, flipkartLink);
+    // 5. Append all elements to the card
+    cardElement.append(title, imageContainer, amazonLink, flipkartLink);
     return cardElement;
 }
 

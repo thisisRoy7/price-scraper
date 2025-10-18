@@ -1,10 +1,12 @@
+//flipkart-scraper.js
+
 const { CheerioCrawler, RequestList, log } = require('crawlee');
 const { createObjectCsvWriter } = require('csv-writer');
 const fs = require('fs');
 const path = require('path');
-const selectors = require('./selectors.json').flipkart; // <-- CHANGE: Import selectors
+const selectors = require('./selectors.json').flipkart; // <-- Already reads from JSON
 
-// --- Helper function to save data to CSV --- (No changes here)
+// --- Helper function to save data to CSV ---
 async function saveToCsv(data, searchTerm) {
     if (data.length === 0) {
         log.warning("No data was collected to save.");
@@ -20,6 +22,7 @@ async function saveToCsv(data, searchTerm) {
         header: [
             { id: 'title', title: 'TITLE' },
             { id: 'price', title: 'PRICE' },
+            { id: 'image', title: 'IMAGE_URL' },
             { id: 'link', title: 'LINK' },
         ],
         encoding: 'utf8',
@@ -33,40 +36,34 @@ async function saveToCsv(data, searchTerm) {
 }
 
 
-// --- (REFACTORED) Helper to find title ---
+// --- Helper to find title ---
 function findTitle($) {
     let title;
-
-    // Selector 1: h1 tag
-    title = $(selectors.titleSelectors[0]).first().text().trim();
-    if (title) return title;
-
-    // Selector 2: meta tag
-    title = $(selectors.titleSelectors[1]).attr('content');
-    if (title) return title.trim();
-
-    // Selector 3: title tag (as a final fallback)
-    title = $(selectors.titleSelectors[2]).text().trim();
-    if (title) return title;
-
+    for (const selector of selectors.titleSelectors) {
+        if (selector.startsWith('meta')) {
+            title = $(selector).attr('content');
+        } else {
+            title = $(selector).first().text().trim();
+        }
+        if (title) return title.trim();
+    }
     return null;
 }
 
-// --- (REFACTORED) Helper to find price ---
+// --- Helper to find price ---
 function findPrice($) {
     let price;
-
-    // 1. Try the primary selectors from the JSON file
-    price = $(selectors.priceSelectors[0]).first().text().trim();
-    if (price) return price;
-
-    price = $(selectors.priceSelectors[1]).first().text().trim();
-    if (price) return price;
-
-    price = $(selectors.priceSelectors[2]).attr('content');
-    if (price) return `₹${price.trim()}`;
-
-    // 2. (Reliable Fallback) Generic search that finds elements with a price but ignores discounts
+    for (const selector of selectors.priceSelectors) {
+        if (selector.startsWith('meta')) {
+            price = $(selector).attr('content');
+            if (price) return `₹${price.trim()}`;
+        } else {
+            price = $(selector).first().text().trim();
+        }
+        if (price) return price;
+    }
+    
+    // Fallback logic (remains useful)
     let priceElem = $('body').find('*').filter((_, el) => {
         const text = $(el).text();
         return /\₹[\d,]+/.test(text) && !/off/i.test(text);
@@ -77,12 +74,28 @@ function findPrice($) {
         if (matched) return matched[0].trim();
     }
     
-    // 3. (Final Fallback) Check for data-attributes
-    price = $('[data-price]').attr('data-price') || $('[price]').attr('price');
-    if (price) return price.trim();
-    
     return null;
 }
+
+// --- Helper to find image ---
+function findImage($) {
+    let image;
+    if (!selectors.imageSelectors) {
+        log.warning("`imageSelectors` not found in selectors.json. Skipping image scrape.");
+        return 'N/A';
+    }
+
+    for (const selector of selectors.imageSelectors) {
+        if (selector.startsWith('meta')) {
+            image = $(selector).attr('content');
+        } else {
+            image = $(selector).first().attr('src');
+        }
+        if (image) return image.trim();
+    }
+    return null;
+}
+
 
 // --- Main Scraper Logic ---
 (async () => {
@@ -115,8 +128,10 @@ function findPrice($) {
 
                 // Enqueue all product links found on this page
                 await enqueueLinks({
-                    selector: selectors.productLink, // <-- CHANGE
+                    selector: selectors.productLink, // <-- Uses JSON
                     label: 'product',
+                    // Add base URL to fix relative links
+                    baseUrl: new URL(url).origin 
                 });
 
                 // If we haven't reached our page limit, find and enqueue the NEXT page
@@ -134,18 +149,20 @@ function findPrice($) {
             if (request.userData.label === 'product') {
                 const title = findTitle($);
                 const price = findPrice($);
+                const image = findImage($); 
 
-                if (!title || !price) {
-                    log.warning(`Missing title or price on ${url}, skipping.`);
+                if (!title || !price || !image) {
+                    log.warning(`Missing title, price, or image on ${url}, skipping.`);
                     return;
                 }
 
                 allProducts.push({
                     title,
                     price,
+                    image, 
                     link: url,
                 });
-                log.info(`✅ Collected: ${title}`);
+                log.info(`✅ Collected: ${title.substring(0, 50)}...`);
             }
         },
 

@@ -6,6 +6,7 @@
     "productHeadings": "div[data-component-type='s-search-result'] h2",
     "productTitle": "#productTitle",
     "productPrice": "span.a-price-whole",
+    "productImage": "#landingImage",
     "nextPageButton": "a.s-pagination-item.s-pagination-next"
   },
   "flipkart": {
@@ -19,6 +20,11 @@
       "div.Nx9bqj.CxhGGd",
       "div._30jeq3._16Jk6d",
       "meta[itemprop='price']"
+    ],
+    "imageSelectors": [
+      "img._2r_T1I._396cs4",
+      "img._396cs4",
+      "meta[property='og:image']"
     ]
   }
 }

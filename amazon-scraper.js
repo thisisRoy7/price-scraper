@@ -1,14 +1,29 @@
+//amazon-scraper.js
+
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const selectors = require('./selectors.json').amazon; // <-- NEW: Import selectors
 
 puppeteer.use(StealthPlugin());
 
 // Helper function to add a random delay
 function delay(time) {
   return new Promise(resolve => setTimeout(resolve, time));
+}
+
+// Helper to set up request interception
+async function setupPageInterception(page) {
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    if (req.resourceType() === 'stylesheet') {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
 }
 
 // Concurrent product scraper
@@ -20,12 +35,17 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
     while (index < productURLs.length) {
       const currentIndex = index++;
       const url = productURLs[currentIndex];
-      try {
-        const productPage = await browser.newPage();
-        await productPage.setViewport({ width: 1440, height: 900 });
+      let productPage;
 
-        const titleSelector = '#productTitle';
-        const priceSelector = 'span.a-price-whole';
+      try {
+        productPage = await browser.newPage();
+        await productPage.setViewport({ width: 1440, height: 900 });
+        await setupPageInterception(productPage); // Disable CSS
+
+        // <-- CHANGED: Use selectors from JSON file
+        const titleSelector = selectors.productTitle;
+        const priceSelector = selectors.productPrice;
+        const imageSelector = selectors.productImage;
 
         await productPage.goto(url, { waitUntil: 'domcontentloaded' });
 
@@ -36,13 +56,19 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
           .then(p => `₹${p.replace(/[,.]/g, '')}`)
           .catch(() => 'N/A');
 
-        scrapedData.push({ title, price, link: url });
+        let image = await productPage.$eval(imageSelector, el => el.src)
+          .catch(() => 'N/A');
+
+        scrapedData.push({ title, price, image, link: url });
         console.log(`   -> Scraped: ${title.substring(0, 40)}...`);
 
         await delay(Math.floor(Math.random() * 1500) + 500); // Small random delay
-        await productPage.close();
       } catch (err) {
         console.log(`   -> Failed for ${url.substring(0, 60)}... Error: ${err.message}`);
+      } finally {
+        if (productPage) {
+          await productPage.close();
+        }
       }
     }
   }
@@ -69,35 +95,39 @@ async function scrapeAmazon(searchTerm, maxPages) {
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
+    await setupPageInterception(page); // Disable CSS
 
     // Step 1: Navigate and search
     console.log('Step 1: Navigating and searching...');
     await page.goto('https://www.amazon.in', { waitUntil: 'domcontentloaded' });
     await delay(Math.random() * 2000 + 1000);
 
-    const searchInputSelector = '#twotabsearchtextbox';
-    await page.waitForSelector(searchInputSelector);
-    await page.type(searchInputSelector, searchTerm, { delay: 150 });
-
-    const searchButtonSelector = '#nav-search-submit-button';
-    await page.hover(searchButtonSelector);
-    await page.click(searchButtonSelector);
+    // <-- CHANGED: Use selectors from JSON file
+    await page.waitForSelector(selectors.searchInput);
+    await page.type(selectors.searchInput, searchTerm, { delay: 150 });
+    await page.hover(selectors.searchButton);
+    await page.click(selectors.searchButton);
+    
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
     // Step 2: Loop through pages
     for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
       console.log(`\nScraping Page ${currentPage} of ${maxPages}...`);
 
-      await page.waitForSelector('[data-component-type="s-search-results"]', { timeout: 20000 });
+      // <-- CHANGED: Use selector from JSON file
+      await page.waitForSelector(selectors.searchResultsContainer, { timeout: 20000 });
       await page.evaluate(() => { window.scrollBy(0, window.innerHeight * Math.random()); });
       await delay(1000);
 
       console.log('Collecting product links...');
+      // <-- CHANGED: Use selector from JSON file
       const productURLs = await page.$$eval(
-        'div[data-component-type="s-search-result"] h2',
+        selectors.productHeadings,
         (headings) => {
           const links = headings.map(h => h.closest('a')?.href);
-          return links.filter(href => href && href.includes('/dp/'));
+          return links
+            .filter(href => href && href.includes('/dp/'))
+            .map(href => (href.startsWith('http') ? href : `https://www.amazon.in${href}`));
         }
       );
       console.log(`Found ${productURLs.length} product links on this page.`);
@@ -109,8 +139,8 @@ async function scrapeAmazon(searchTerm, maxPages) {
 
       // Navigate to next page if exists
       if (currentPage < maxPages) {
-        const nextButtonSelector = 'a.s-pagination-item.s-pagination-next';
-        const nextButton = await page.$(nextButtonSelector);
+        // <-- CHANGED: Use selector from JSON file
+        const nextButton = await page.$(selectors.nextPageButton);
 
         if (nextButton) {
           console.log('\nNavigating to the next page...');
@@ -156,6 +186,7 @@ async function saveToCsv(data, searchTerm) {
     header: [
       { id: 'title', title: 'TITLE' },
       { id: 'price', title: 'PRICE' },
+      { id: 'image', title: 'IMAGE_URL' },
       { id: 'link', title: 'LINK' },
     ],
     encoding: 'utf8',

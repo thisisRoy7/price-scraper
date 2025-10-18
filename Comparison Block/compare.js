@@ -1,5 +1,3 @@
-// Comparison Block/compare.js
-
 // Import necessary Node.js modules
 const { exec } = require('child_process');
 const fs = require('fs');
@@ -26,18 +24,27 @@ async function main() {
         const numPages = args[1];
         
         // ---
-        // --- THIS IS THE CHANGE ---
+        // --- CHANGE #1 (File Paths) ---
         // --- Paths now go UP one level ('..') from "Comparison Block"
         // ---
         const sanitizedProductName = productName.replace(/\s+/g, '_');
-        const amazonFile = path.join('..', 'amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
-        const flipkartFile = path.join('..', 'flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
+        // Use path.join(__dirname, '..', ...) to get the correct path from the main project folder
+        const amazonFile = path.join(__dirname, '..', 'amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
+        const flipkartFile = path.join(__dirname, '..', 'flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
         
         output.logs.push('🚀 Starting scrapers for Amazon and Flipkart...');
         
-        // Paths to scrapers also go UP one level
-        const amazonCommand = `node ../amazon-scraper.js "${productName}" ${numPages}`;
-        const flipkartCommand = `node ../flipkart-scraper.js "${productName}" ${numPages}`;
+        // ---
+        // --- CHANGE #1 (Script Commands) ---
+        // --- Build absolute paths to the scraper scripts using __dirname
+        // --- This makes the commands runnable from anywhere
+        // ---
+        const amazonScraperPath = path.join(__dirname, '..', 'amazon-scraper.js');
+        const flipkartScraperPath = path.join(__dirname, '..', 'flipkart-scraper.js');
+
+        // Enclose paths in quotes in case of spaces in the full path
+        const amazonCommand = `node "${amazonScraperPath}" "${productName}" ${numPages}`;
+        const flipkartCommand = `node "${flipkartScraperPath}" "${productName}" ${numPages}`;
 
         await Promise.all([
             runScript(amazonCommand),
@@ -46,9 +53,6 @@ async function main() {
 
         output.logs.push('✅ Scrapers finished. Reading result files...');
 
-        // ---
-        // --- These lines now use the corrected paths defined above ---
-        // ---
         const amazonData = await readCsv(amazonFile);
         const flipkartData = await readCsv(flipkartFile);
 
@@ -56,7 +60,6 @@ async function main() {
 
         let commonProductsFound = 0;
         for (const flipkartProduct of flipkartData) {
-            // Use the imported function
             const amazonMatch = await findMatchingProduct(flipkartProduct, amazonData);
 
             if (amazonMatch) {
@@ -76,7 +79,10 @@ async function main() {
                     amazonPrice: amazonPrice,
                     winner: winner,
                     flipkartLink: flipkartProduct.link,
-                    amazonLink: amazonMatch.link 
+                    amazonLink: amazonMatch.link,
+                    // --- (NEW) Add the image URLs to the final object ---
+                    flipkartImage: flipkartProduct.image_url, 
+                    amazonImage: amazonMatch.image_url 
                 });
             }
         }
@@ -86,17 +92,26 @@ async function main() {
         }
 
     } catch (error) {
+        // Log the error message directly
         output.logs.push(`❌ An error occurred: ${error.message}`);
     } finally {
-        console.log(JSON.stringify(output, null, 2));
+        // ---
+        // --- CHANGE #2 (JSON Output) ---
+        // --- Removed 'null, 2' to print JSON on a single line
+        // ---
+        console.log(JSON.stringify(output));
     }
 }
 
 // --- Helper Functions ---
 function runScript(command) {
     return new Promise((resolve, reject) => {
-        exec(command, (error, stdout, stderr) => {
-            if (error) return reject(new Error(stderr));
+        // Increase buffer size in case scrapers output a lot of logs
+        exec(command, { maxBuffer: 1024 * 5000 }, (error, stdout, stderr) => {
+            if (error) {
+                // Combine stdout and stderr for a complete error log
+                return reject(new Error(`Error: ${error.message}\nStderr: ${stderr}\nStdout: ${stdout}`));
+            }
             resolve(stdout);
         });
     });
@@ -116,6 +131,7 @@ function readCsv(filePath) {
                 const lowercasedResults = results.map(row => {
                     const newRow = {};
                     for (const key in row) {
+                        // Standardize keys: (TITLE -> title, IMAGE_URL -> image_url)
                         newRow[key.toLowerCase()] = row[key];
                     }
                     return newRow;

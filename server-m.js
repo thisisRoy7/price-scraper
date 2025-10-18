@@ -51,9 +51,6 @@ app.post('/compare', async (req, res) => {
     console.log(`[SERVER] 🟡 Cache MISS or REFRESH for "${productName}". Running live scrape.`);
 
     // 2️⃣ Run scraper script if no cache hit or if refresh is forced
-    // ---
-    // --- CHANGE: Updated path to point inside "Comparison Block" ---
-    // ---
     // Using quotes to handle the space in the folder name
     const command = `node "Comparison Block/compare.js" "${productName}" ${numPages}`;
     console.log(`🚀 Running: ${command}`);
@@ -61,31 +58,61 @@ app.post('/compare', async (req, res) => {
     exec(command, async (error, stdout, stderr) => {
       if (error) {
         console.error('Execution Error:', stderr);
+        console.log('--- STDOUT (from error) ---');
+        console.log(stdout); // Log stdout to see what the script *did* output
+        console.log('---------------------------');
         return res.status(500).json({ error: `Scraper error: ${stderr}` });
       }
 
       let jsonData;
       try {
-        jsonData = JSON.parse(stdout);
+        // --- START: MODIFIED LOGIC ---
+
+        // 1. Split all output lines into an array
+        const lines = stdout.split('\n').filter(line => line.trim() !== '');
+
+        // 2. Get the very last line of output
+        const lastLine = lines.pop(); 
+
+        if (!lastLine) {
+          console.error('Scraper script gave no output.');
+          return res.status(500).json({ error: 'Scraper script gave no output.' });
+        }
+
+        // 3. Parse *only* the last line, which we assume is the JSON
+        jsonData = JSON.parse(lastLine);
+
+        // --- END: MODIFIED LOGIC ---
+
       } catch (parseError) {
-        console.error('JSON Parse Error:', parseError, stdout);
+        console.error('JSON Parse Error:', parseError.message);
+        console.log('--- FAILED STDOUT (Could not parse as JSON) ---');
+        console.log(stdout); // This will show you exactly what the script outputted
+        console.log('------------------------------------------------');
         return res.status(500).json({ error: 'Invalid JSON from scraper script' });
       }
 
       // 3️⃣ Store in MongoDB cache
-      await collection.updateOne(
-        { query: productName },
-        { 
-          $set: {
-            results: jsonData,
-            last_updated: new Date()
-          } 
-        },
-        { upsert: true }
-      );
-      console.log(`[SERVER] 💾 Scrape results for "${productName}" saved to cache.`);
+      try {
+        await collection.updateOne(
+          { query: productName },
+          { 
+            $set: {
+              results: jsonData,
+              last_updated: new Date()
+            } 
+          },
+          { upsert: true }
+        );
+        console.log(`[SERVER] 💾 Scrape results for "${productName}" saved to cache.`);
+        
+        res.json(jsonData); // Send success response
 
-      res.json(jsonData);
+      } catch (dbError) {
+        console.error('MongoDB Caching Error:', dbError);
+        // Still send the data to the user even if caching failed
+        res.json(jsonData); 
+      }
     });
 
   } catch (err) {

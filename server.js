@@ -32,7 +32,6 @@ app.post('/compare', async (req, res) => {
   try {
     // 1️⃣ Check cache, but only if `forceRefresh` is false
     if (!forceRefresh) {
-      // --- CHANGE: Select the timestamp from the DB as well ---
       const [rows] = await db.execute(
         'SELECT results, last_updated FROM scraper_cache WHERE query = ?', 
         [productName]
@@ -41,7 +40,6 @@ app.post('/compare', async (req, res) => {
       if (rows.length > 0) {
         console.log(`[SERVER] ✅ Cache HIT for "${productName}".`);
         const cachedData = rows[0].results;
-        // --- CHANGE: Add the timestamp from the DB to the response ---
         cachedData.scrapedOn = rows[0].last_updated; 
         cachedData.logs.unshift(`✅ [CACHE HIT] Found previous results for "${productName}".`);
         return res.json(cachedData);
@@ -51,7 +49,11 @@ app.post('/compare', async (req, res) => {
     console.log(`[SERVER] 🟡 Cache MISS or REFRESH for "${productName}". Running live scrape.`);
 
     // 2️⃣ Run scraper script
-    const command = `node compare.js "${productName}" ${numPages}`;
+    // ---
+    // --- CHANGE: Updated path to point inside "Comparison Block" ---
+    // ---
+    // Using quotes to handle the space in the folder name
+    const command = `node "Comparison Block/compare.js" "${productName}" ${numPages}`;
     console.log(`🚀 Running: ${command}`);
 
     exec(command, async (error, stdout, stderr) => {
@@ -85,8 +87,7 @@ app.post('/compare', async (req, res) => {
   }
 });
 
-// Leave the other /cache endpoints as they might be useful for debugging
-// ...
+// ... (rest of your /cache endpoints) ...
 
 app.listen(PORT, () => {
   console.log(`🎉 Server running at http://localhost:${PORT}`);

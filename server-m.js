@@ -7,8 +7,6 @@ const { MongoClient } = require('mongodb'); // Use the MongoDB driver
 const app = express();
 const PORT = 3000;
 
-// --- MongoDB Connection Details ---
-// This is the default connection string Compass uses
 const MONGO_URL = 'mongodb://localhost:27017'; 
 const DB_NAME = 'scraper_db_mongo';
 const COLLECTION_NAME = 'scraper_cache';
@@ -16,7 +14,6 @@ const COLLECTION_NAME = 'scraper_cache';
 app.use(express.static('public'));
 app.use(express.json());
 
-// --- Establish MongoDB Connection ---
 let db;
 let collection;
 (async () => {
@@ -27,11 +24,10 @@ let collection;
     console.log(`✅ Connected to MongoDB at ${MONGO_URL}`);
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err);
-    process.exit(1); // Exit if the database connection fails
+    process.exit(1);
   }
 })();
 
-// --- API Endpoint ---
 app.post('/compare', async (req, res) => {
   const { productName, numPages, forceRefresh } = req.body;
   if (!productName || !numPages) {
@@ -41,14 +37,11 @@ app.post('/compare', async (req, res) => {
   try {
     // 1️⃣ Check cache, but only if `forceRefresh` is false
     if (!forceRefresh) {
-      // Find one document where the 'query' field matches the productName
       const cachedDoc = await collection.findOne({ query: productName });
       
       if (cachedDoc) {
         console.log(`[SERVER] ✅ Cache HIT for "${productName}".`);
-        const cachedData = cachedDoc.results; // Results are already a JS object
-        
-        // Add the timestamp from the DB to the response
+        const cachedData = cachedDoc.results;
         cachedData.scrapedOn = cachedDoc.last_updated; 
         cachedData.logs.unshift(`✅ [CACHE HIT] Found previous results for "${productName}".`);
         return res.json(cachedData);
@@ -58,7 +51,11 @@ app.post('/compare', async (req, res) => {
     console.log(`[SERVER] 🟡 Cache MISS or REFRESH for "${productName}". Running live scrape.`);
 
     // 2️⃣ Run scraper script if no cache hit or if refresh is forced
-    const command = `node compare.js "${productName}" ${numPages}`;
+    // ---
+    // --- CHANGE: Updated path to point inside "Comparison Block" ---
+    // ---
+    // Using quotes to handle the space in the folder name
+    const command = `node "Comparison Block/compare.js" "${productName}" ${numPages}`;
     console.log(`🚀 Running: ${command}`);
 
     exec(command, async (error, stdout, stderr) => {
@@ -76,17 +73,15 @@ app.post('/compare', async (req, res) => {
       }
 
       // 3️⃣ Store in MongoDB cache
-      // Use updateOne with upsert:true. This will update if a document with
-      // the same 'query' exists, or insert a new one if it doesn't.
       await collection.updateOne(
-        { query: productName }, // The filter to find the document
+        { query: productName },
         { 
-          $set: { // The fields to update or set
-            results: jsonData, // Store the JSON object directly
-            last_updated: new Date() // Set the timestamp
+          $set: {
+            results: jsonData,
+            last_updated: new Date()
           } 
         },
-        { upsert: true } // Option to insert if not found
+        { upsert: true }
       );
       console.log(`[SERVER] 💾 Scrape results for "${productName}" saved to cache.`);
 

@@ -50,10 +50,10 @@ app.post('/compare', async (req, res) => {
 
     // 2️⃣ Run scraper script
     // ---
-    // --- CHANGE: Updated path to point inside "Comparison Block" ---
+    // --- CHANGE: Updated path to point inside "comparison-block" ---
     // ---
     // Using quotes to handle the space in the folder name
-    const command = `node "Comparison Block/compare.js" "${productName}" ${numPages}`;
+    const command = `node "comparison-block/compare.js" "${productName}" ${numPages}`;
     console.log(`🚀 Running: ${command}`);
 
     exec(command, async (error, stdout, stderr) => {

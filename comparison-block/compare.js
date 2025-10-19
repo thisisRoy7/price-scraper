@@ -1,4 +1,4 @@
-//Comparison Block/compare.js
+//comparison-block/compare.js
 
 // Import necessary Node.js modules
 const { exec } = require('child_process');

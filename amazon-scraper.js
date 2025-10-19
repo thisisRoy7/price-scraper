@@ -42,25 +42,46 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
         await productPage.setViewport({ width: 1440, height: 900 });
         await setupPageInterception(productPage); // Disable CSS
 
-        // <-- CHANGED: Use selectors from JSON file
         const titleSelector = selectors.productTitle;
         const priceSelector = selectors.productPrice;
         const imageSelector = selectors.productImage;
 
         await productPage.goto(url, { waitUntil: 'domcontentloaded' });
 
+        // --- NEW: Check for Out of Stock ---
+        let isOutOfStock = false;
+        try {
+            const pageContent = await productPage.$eval('body', el => el.innerText.toLowerCase());
+            const outOfStockKeywords = ['out of stock', 'currently unavailable'];
+            isOutOfStock = outOfStockKeywords.some(keyword => pageContent.includes(keyword));
+            
+            if (isOutOfStock) {
+                console.log(`   -> Stock Alert: Product is Out of Stock.`);
+            }
+        } catch (e) {
+            console.log(`   -> Warning: Could not check stock status.`);
+        }
+        // --- END: Out of Stock Check ---
+
         const title = await productPage.$eval(titleSelector, el => el.innerText.trim())
           .catch(() => 'N/A');
 
-        let price = await productPage.$eval(priceSelector, el => el.innerText.trim())
-          .then(p => `₹${p.replace(/[,.]/g, '')}`)
-          .catch(() => 'N/A');
+        // --- UPDATED: Price Logic ---
+        let price = 'N/A'; // Default to N/A
+        if (isOutOfStock) {
+            price = 'N/A';
+        } else {
+            price = await productPage.$eval(priceSelector, el => el.innerText.trim())
+              .then(p => `₹${p.replace(/[,.]/g, '')}`) // Cleans price
+              .catch(() => 'N/A'); // Catches if price selector not found
+        }
+        // --- END: Updated Price Logic ---
 
         let image = await productPage.$eval(imageSelector, el => el.src)
           .catch(() => 'N/A');
 
         scrapedData.push({ title, price, image, link: url });
-        console.log(`   -> Scraped: ${title.substring(0, 40)}...`);
+        console.log(`   -> Scraped: ${title.substring(0, 40)}... (Price: ${price})`);
 
         await delay(Math.floor(Math.random() * 1500) + 500); // Small random delay
       } catch (err) {
@@ -102,7 +123,6 @@ async function scrapeAmazon(searchTerm, maxPages) {
     await page.goto('https://www.amazon.in', { waitUntil: 'domcontentloaded' });
     await delay(Math.random() * 2000 + 1000);
 
-    // <-- CHANGED: Use selectors from JSON file
     await page.waitForSelector(selectors.searchInput);
     await page.type(selectors.searchInput, searchTerm, { delay: 150 });
     await page.hover(selectors.searchButton);
@@ -114,13 +134,11 @@ async function scrapeAmazon(searchTerm, maxPages) {
     for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
       console.log(`\nScraping Page ${currentPage} of ${maxPages}...`);
 
-      // <-- CHANGED: Use selector from JSON file
       await page.waitForSelector(selectors.searchResultsContainer, { timeout: 20000 });
       await page.evaluate(() => { window.scrollBy(0, window.innerHeight * Math.random()); });
       await delay(1000);
 
       console.log('Collecting product links...');
-      // <-- CHANGED: Use selector from JSON file
       const productURLs = await page.$$eval(
         selectors.productHeadings,
         (headings) => {
@@ -139,7 +157,6 @@ async function scrapeAmazon(searchTerm, maxPages) {
 
       // Navigate to next page if exists
       if (currentPage < maxPages) {
-        // <-- CHANGED: Use selector from JSON file
         const nextButton = await page.$(selectors.nextPageButton);
 
         if (nextButton) {

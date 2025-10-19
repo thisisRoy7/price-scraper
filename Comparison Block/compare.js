@@ -6,13 +6,13 @@ const fs = require('fs');
 const csv = require('csv-parser');
 const path = require('path');
 // Import the matcher function
-const { findMatchingProduct } = require('./matcher.js');
+const { findBestMatch } = require('./matcher.js');
 
 async function main() {
     const output = {
         logs: [],
         results: [],
-        scrapedOn: new Date().toISOString() 
+        scrapedOn: new Date().toISOString()
     };
     let productName = '';
 
@@ -24,16 +24,16 @@ async function main() {
 
         productName = args[0];
         const numPages = args[1];
-        
+
         // ---
         // --- File Paths ---
         // ---
         const sanitizedProductName = productName.replace(/\s+/g, '_');
         const amazonFile = path.join(__dirname, '..', 'amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
         const flipkartFile = path.join(__dirname, '..', 'flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
-        
+
         output.logs.push('🚀 Starting scrapers for Amazon and Flipkart...');
-        
+
         // ---
         // --- Script Commands ---
         // ---
@@ -57,34 +57,43 @@ async function main() {
 
         let commonProductsFound = 0;
         for (const flipkartProduct of flipkartData) {
-            const amazonMatch = await findMatchingProduct(flipkartProduct, amazonData);
+            const amazonMatch = await findBestMatch(flipkartProduct, amazonData);
 
             if (amazonMatch) {
                 commonProductsFound++;
                 
+                // --- FIX START ---
+                // Get the actual matched product object from the 'item' property
+                const matchedAmazonProduct = amazonMatch.item; 
+
                 const flipkartPrice = parsePrice(flipkartProduct.price);
-                const amazonPrice = parsePrice(amazonMatch.price);
+                // Get price from the matched product object
+                const amazonPrice = parsePrice(matchedAmazonProduct.price); 
+                // --- FIX END ---
+                
                 let winner = 'Same Price';
                 if (!isNaN(flipkartPrice) && !isNaN(amazonPrice)) {
                     if (flipkartPrice < amazonPrice) winner = 'Flipkart';
                     else if (amazonPrice < flipkartPrice) winner = 'Amazon';
                 }
-                
+
                 output.results.push({
                     title: flipkartProduct.title,
                     flipkartPrice: flipkartPrice,
                     amazonPrice: amazonPrice,
                     winner: winner,
                     flipkartLink: flipkartProduct.link,
-                    amazonLink: amazonMatch.link,
-                    // --- THIS IS THE KEY ---
-                    // You are correctly adding the image URLs here
-                    flipkartImage: flipkartProduct.image_url, 
-                    amazonImage: amazonMatch.image_url 
+                    
+                    // --- FIX START ---
+                    // Get link and image_url from the matched product object
+                    amazonLink: matchedAmazonProduct.link,
+                    flipkartImage: flipkartProduct.image_url,
+                    amazonImage: matchedAmazonProduct.image_url 
+                    // --- FIX END ---
                 });
             }
         }
-        
+
         if (commonProductsFound === 0) {
             output.logs.push("\nCouldn't find any common products between the two sites based on their titles.");
         }
@@ -116,13 +125,15 @@ function readCsv(filePath) {
         }
         const results = [];
         fs.createReadStream(filePath)
-            .pipe(csv()) 
+            .pipe(csv())
+            // Your `readCsv` function correctly lowercases the headers,
+            // so 'IMAGE_URL' from the CSV becomes 'image_url' on the object.
+            // This part is correct.
             .on('data', (data) => results.push(data))
             .on('end', () => {
                 const lowercasedResults = results.map(row => {
                     const newRow = {};
                     for (const key in row) {
-                        // This correctly converts TITLE -> title, IMAGE_URL -> image_url
                         newRow[key.toLowerCase()] = row[key];
                     }
                     return newRow;

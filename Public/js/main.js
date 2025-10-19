@@ -1,3 +1,5 @@
+// Public/js/main.js
+
 import { initVanta, triggerRipple } from './vanta-animation.js';
 import { renderResults } from './ui-renderer.js';
 import { performComparison } from './api-handler.js';
@@ -22,6 +24,8 @@ window.addEventListener('load', () => {
         statusDisplay: document.getElementById('status-display'),
         statusIcon: document.getElementById('status-icon'),
         statusText: document.getElementById('status-text'),
+        progressBarContainer: document.getElementById('progress-bar-container'), // <-- ADD THIS
+        progressBarInner: document.getElementById('progress-bar-inner'),       // <-- ADD THIS
     };
     
     const RIPPLE_DELAY = 400; // ms to delay task so animation can start

@@ -1,3 +1,4 @@
+//Public/js/ui-renderer.js
 // This function creates a single product card
 function createProductCard(product) {
     const formatPrice = (price) => isNaN(price) || price === null ? 'N/A' : `₹${price.toLocaleString('en-IN')}`;
@@ -15,9 +16,7 @@ function createProductCard(product) {
     imageContainer.className = 'w-full md:basis-24 flex justify-center md:justify-start'; 
 
     const imageWrapper = document.createElement('div');
-    // --- CHANGED ---
-    // Added 'border-2' (medium thickness) and 'border-black' (solid black color)
-    // Removed 'border' and 'border-border-light'
+
     imageWrapper.className = 'w-24 h-24 rounded-md overflow-hidden flex-shrink-0 border-2 border-border-muted'; // <-- Change 'border-black' to any Tailwind color
     
     const img = document.createElement('img');

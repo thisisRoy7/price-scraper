@@ -1,3 +1,4 @@
+<!-- Public/index.html  -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,10 +64,18 @@
                         </button>
                     </div>
                 </div>
-                <div id="status-display" class="flex items-center p-5 bg-surface border-t border-border-muted transition-colors duration-300 rounded-b-xl">
+                <div id="status-display" class="flex flex-col p-5 bg-surface border-t border-border-muted transition-colors duration-300 rounded-b-xl">
+                    
+                    <div class="flex items-center w-full">
                     <span id="status-icon" class="text-xl mr-3"></span>
                     <span id="status-text" class="font-medium text-text-secondary">Awaiting comparison...</span>
                     <div id="loader" class="hidden border-4 border-gray-200 border-t-primary rounded-full w-5 h-5 animate-spin ml-3"></div>
+                    </div>
+
+                    <div id="progress-bar-container" class="hidden w-full h-1.5 bg-border-muted rounded-full overflow-hidden mt-4">
+                    <div id="progress-bar-inner" class="h-full bg-primary w-0 transition-all duration-300 rounded-full"></div>
+                    </div>
+
                 </div>
             </div>
 

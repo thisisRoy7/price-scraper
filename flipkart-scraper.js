@@ -125,14 +125,50 @@ function findImage($) {
             if (url.includes('/search')) {
                 pagesCrawled++;
                 log.info(`Processing search page ${pagesCrawled}/${maxPages}...`);
+                
+                // --- UPDATED: Manually check for sponsored links ---
+                log.info('Manually filtering for non-sponsored product links...');
+                const linksToEnqueue = [];
+                const baseUrl = new URL(url).origin;
 
-                // Enqueue all product links found on this page
-                await enqueueLinks({
-                    selector: selectors.productLink, // <-- Uses JSON
-                    label: 'product',
-                    // Add base URL to fix relative links
-                    baseUrl: new URL(url).origin 
+                // Use the selector for the link provided in selectors.json
+                $(selectors.productLink).each((index, el) => {
+                    const linkElement = $(el);
+                    
+                    // Find the closest common ancestor that represents a product card.
+                    // Flipkart's structure is volatile. We check a few common ones.
+                    const productCard = linkElement.closest('._1AtVbE') || linkElement.closest('._4ddWXP') || linkElement.closest('div[data-id]');
+                    
+                    let isSponsored = false;
+                    if (productCard.length > 0) {
+                        // Check for the specific "Sponsored" tag class
+                        const sponsoredTag = productCard.find('._3Sdu8D'); 
+                        if (sponsoredTag.length > 0) {
+                            isSponsored = true;
+                        }
+                    }
+
+                    // If no sponsored tag was found, add the link
+                    if (!isSponsored) {
+                        const href = linkElement.attr('href');
+                        if (href) {
+                            const absoluteUrl = new URL(href, baseUrl).href;
+                            linksToEnqueue.push({ url: absoluteUrl, userData: { label: 'product' } });
+                        }
+                    } else {
+                        log.debug(`Skipping sponsored link: ${linkElement.attr('href')}`);
+                    }
                 });
+
+                // Add all valid, non-sponsored links to the queue
+                if (linksToEnqueue.length > 0) {
+                    log.info(`Enqueuing ${linksToEnqueue.length} non-sponsored product links.`);
+                    await crawler.addRequests(linksToEnqueue);
+                } else {
+                    log.info('No non-sponsored product links found to enqueue.');
+                }
+                // --- END: Updated Logic ---
+
 
                 // If we haven't reached our page limit, find and enqueue the NEXT page
                 if (pagesCrawled < maxPages) {

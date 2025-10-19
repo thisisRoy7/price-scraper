@@ -138,17 +138,42 @@ async function scrapeAmazon(searchTerm, maxPages) {
       await page.evaluate(() => { window.scrollBy(0, window.innerHeight * Math.random()); });
       await delay(1000);
 
-      console.log('Collecting product links...');
+      console.log('Collecting product links (filtering sponsored)...');
+      
+      // --- UPDATED: Logic to filter sponsored links ---
       const productURLs = await page.$$eval(
         selectors.productHeadings,
         (headings) => {
-          const links = headings.map(h => h.closest('a')?.href);
+          // headings is an array of elements matching selectors.productHeadings
+          const links = headings.map(h => {
+            // 1. Find the main product card (container) from the heading element 'h'
+            const productCard = h.closest('[data-component-type="s-search-result"]'); 
+            
+            if (!productCard) return null; 
+
+            // 2. Check if this card contains a "sponsored" label.
+            const hasSponsoredAttribute = productCard.querySelector('span[data-component-type="s-sponsored-label"]');
+            const hasSponsoredText = Array.from(productCard.querySelectorAll('span'))
+                                          .some(span => span.textContent.trim() === 'Sponsored');
+            
+            // 3. If it's sponsored, return null to filter it out.
+            if (hasSponsoredAttribute || hasSponsoredText) {
+              return null;
+            }
+
+            // 4. If not sponsored, get the link.
+            return h.closest('a')?.href;
+          });
+
+          // 5. Filter out the nulls and process the links
           return links
-            .filter(href => href && href.includes('/dp/'))
+            .filter(href => href && href.includes('/dp/')) // Filter nulls and non-product links
             .map(href => (href.startsWith('http') ? href : `https://www.amazon.in${href}`));
         }
       );
-      console.log(`Found ${productURLs.length} product links on this page.`);
+      // --- END: Updated Logic ---
+
+      console.log(`Found ${productURLs.length} non-sponsored product links on this page.`);
 
       if (productURLs.length > 0) {
         const scrapedData = await scrapeProductsConcurrently(browser, productURLs, 5);

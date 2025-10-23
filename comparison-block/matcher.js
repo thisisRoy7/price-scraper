@@ -1,13 +1,17 @@
-// Comparison matcher.js
+// comparison-block/ matcher.js
 
 // Load environment variables from .env file (e.g., HF_API_TOKEN)
-require('dotenv').config(); 
+require('dotenv').config();
 
-const { WordTokenizer, JaccardIndex } = require('natural');
+// Only import the API checker
 const { checkWithSemanticAPI } = require('./matcher-api.js');
-const tokenizer = new WordTokenizer();
 
-// --- 1. Constants & Configuration (Same as before) ---
+// --- NEW: A simple in-memory cache for API results ---
+// This prevents re-calling the API for the same pair
+const apiCache = new Map();
+
+
+// --- 1. Constants (Same as before) ---
 
 const COMMON_BRANDS = new Set([
     'apple', 'samsung', 'google', 'oneplus', 'xiaomi', 'redmi', 'oppo', 'vivo',
@@ -18,18 +22,14 @@ const COMMON_BRANDS = new Set([
     'intel', 'amd', 'nvidia', 'gopro', 'dji', 'canon', 'nikon'
 ]);
 const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
-const PARENTHETICAL_REGEX = /[\(\[\{].*?[\)\]\}]/g;
-const FLUFF_WORDS_REGEX = /\b(with\s\w+|combo|edition|new|latest|special|limited|for|and|plus|pro|max|ultra|lite|se|fe|gb|tb|ram|model|color|edition|gen|generation)\b/gi;
-const SPECIAL_CHARS_REGEX = /[^\p{L}\p{N}\s-]/gu;
-const MODEL_NUMBER_PATTERNS = [
-    /\b([A-Z]{2,}\s?-\s?[A-Z0-9]{3,})\b/i, // SM-G998B
-    /\b(iPhone\s\d{1,2}|Galaxy\s[SZN]\d{1,2}|Pixel\s\d[a-z]?|Note\s\d{1,2})\b/i, // iPhone 14
-    /\b([A-Z0-9]{3,}[-./]?[A-Z0-9]{3,})\b/i // G-998B
-];
+const RAM_REGEX = /\b(\d{1,3})\s*(?:g|gb)\s*ram\b/gi;
+const STORAGE_REGEX = /\b(\d{2,4})\s*(?:g|gb)\b|\b(\d{1,2})\s*(?:t|tb)\b/gi;
+const PROCESSOR_REGEX = /\b(snapdragon(?:[\s-][\w\d]+){0,3}|a\d{2}\s*bionic|intel\s*i[3579](?:[\s-][\d\w]+){0,3}|ryzen\s*[3579](?:[\s-][\d\w]+){0,3}|apple\s*m[1-3](?:[\s-]\w+){0,2})\b/gi;
 
-// --- 2. Utility Functions (Same as before) ---
 
-const normalize = (str) => (str || '').toLowerCase().trim();
+// --- 2. Utility Functions (Brand & Spec Extraction - Unchanged) ---
+
+const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
 function extractBrand(title) {
     const titleLower = normalize(title);
@@ -45,48 +45,68 @@ function extractBrand(title) {
     return null;
 }
 
-function extractModelNumber(title) {
-    if (!title) return null;
-    for (const pattern of MODEL_NUMBER_PATTERNS) {
-        const match = title.match(pattern);
-        if (match && match[0]) {
-            return normalize(match[0]).replace(/\s/g, '');
+function extractSpecs(title) {
+    const specs = {};
+    const lowerTitle = normalize(title);
+    
+    try {
+        const ramMatch = lowerTitle.match(RAM_REGEX);
+        if (ramMatch) {
+            specs.ram = normalize(ramMatch[0]).match(/\d+/)[0];
+        }
+
+        const storageMatches = lowerTitle.match(STORAGE_REGEX);
+        if (storageMatches) {
+            for (let matchStr of storageMatches) {
+                matchStr = normalize(matchStr);
+                if (specs.ram && (matchStr === `${specs.ram}gb` || matchStr === `${specs.ram}g`)) {
+                    continue;
+                }
+                let normalizedStorage;
+                if (matchStr.includes('tb') || matchStr.includes('t')) {
+                    normalizedStorage = parseInt(matchStr) * 1024;
+                } else {
+                    normalizedStorage = parseInt(matchStr);
+                }
+                specs.storage = String(normalizedStorage);
+                break;
+            }
+        }
+
+        const processorMatch = lowerTitle.match(PROCESSOR_REGEX);
+        if (processorMatch) {
+            specs.processor = normalize(processorMatch[0]);
+        }
+    } catch (e) {
+        console.error(`[Matcher] Regex extraction failed for title: "${title}"`, e.message);
+    }
+    return specs;
+}
+
+function compareSpecs(specsA, specsB) {
+    const keys = ['ram', 'storage', 'processor'];
+    for (const key of keys) {
+        const valA = specsA[key];
+        const valB = specsB[key];
+        if (valA && valB && valA !== valB) {
+            return {
+                match: false,
+                reason: `Specification mismatch on '${key}': '${valA}' vs '${valB}'`
+            };
         }
     }
-    return null;
-}
-
-function cleanTitle(title) {
-    if (!title) return '';
-    let cleaned = title
-        .replace(PARENTHETICAL_REGEX, '')
-        .replace(FLUFF_WORDS_REGEX, '')
-        .replace(SPECIAL_CHARS_REGEX, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-    return normalize(cleaned);
+    return { match: true };
 }
 
 
-// --- 3. Core Matching Logic (Now with Hybrid API call) ---
+// --- 3. Core Matching Logic (Now with Caching) ---
 
 /**
- * Compares two product objects (A and B) using a hierarchical strategy.
- *
- * @param {object} productA - First product { title, brand?, model_number? }
- * @param {object} productB - Second product { title, brand?, model_number? }
- * @param {object} [options] - Configuration options.
- * @param {number} [options.hardThreshold=0.8] - Jaccard score for an automatic "yes".
- * @param {number} [options.rejectThreshold=0.3] - Jaccard score for an automatic "no".
- * @param {number} [options.semanticThreshold=0.85] - API score for a semantic "yes".
- * @returns {Promise<object>} - The match result object.
+ * Compares two product objects (A and B) using a filter-then-API strategy.
  */
 async function matchProducts(productA, productB, options = {}) {
-    // Default thresholds for the hybrid approach
     const config = {
-        hardThreshold: 0.8,     // Jaccard: auto-match
-        rejectThreshold: 0.3,   // Jaccard: auto-reject
-        semanticThreshold: 0.85, // API: semantic match
+        semanticThreshold: 0.85,
         ...options
     };
 
@@ -96,98 +116,84 @@ async function matchProducts(productA, productB, options = {}) {
         return { ...baseResult, reason: "One or both products lack a title." };
     }
 
-    // --- Step 1: Extract and Normalize Data ---
+    // --- Case 1: Brand Mismatch (Fast, no cache) ---
     const brandA = normalize(productA.brand || extractBrand(productA.title));
     const brandB = normalize(productB.brand || extractBrand(productB.title));
-    const modelA = normalize(productA.model_number || extractModelNumber(productA.title));
-    const modelB = normalize(productB.model_number || extractModelNumber(productB.title));
-
-    // --- Step 2: Strict Matching (Brand + Model) ---
-    if (brandA && brandB && brandA === brandB) {
-        if (modelA && modelB && modelA === modelB) {
-            return {
-                matched: true,
-                score: 1.0,
-                method: "brand+model",
-                reason: `Exact match on brand '${brandA}' and model '${modelA}'`
-            };
-        }
-    }
-
-    // --- Step 3: Hard Rejection (Brand Mismatch) ---
     if (brandA && brandB && brandA !== brandB) {
         return {
             ...baseResult,
+            method: "brand",
             reason: `Brand mismatch: '${brandA}' vs '${brandB}'`
         };
     }
 
-    // --- Step 4: Jaccard Similarity Filter ---
-    const cleanTitleA = cleanTitle(productA.title);
-    const cleanTitleB = cleanTitle(productB.title);
-    const tokensA = tokenizer.tokenize(cleanTitleA);
-    const tokensB = tokenizer.tokenize(cleanTitleB);
-
-    if (tokensA.length === 0 || tokensB.length === 0) {
-        return { ...baseResult, reason: "One or both titles had no tokens after cleaning." };
-    }
-
-    const jaccardScore = JaccardIndex(tokensA, tokensB);
-
-    // Case 1: High similarity (auto-match)
-    if (jaccardScore >= config.hardThreshold) {
-        return {
-            matched: true,
-            score: jaccardScore,
-            method: "jaccard",
-            reason: `Jaccard score ${jaccardScore.toFixed(3)} >= hard threshold ${config.hardThreshold}`
-        };
-    }
-
-    // Case 2: Low similarity (auto-reject)
-    if (jaccardScore < config.rejectThreshold) {
+    // --- Case 2: Spec Mismatch (Fast, no cache) ---
+    const specsA = extractSpecs(productA.title);
+    const specsB = extractSpecs(productB.title);
+    const specResult = compareSpecs(specsA, specsB);
+    if (!specResult.match) {
         return {
             ...baseResult,
-            score: jaccardScore,
-            method: "jaccard",
-            reason: `Jaccard score ${jaccardScore.toFixed(3)} < reject threshold ${config.rejectThreshold}`
+            method: "specs",
+            reason: specResult.reason
         };
     }
 
-    // --- Step 5: "Maybe" Zone - Call Semantic API ---
-    // The Jaccard score is between rejectThreshold and hardThreshold.
-    // We pass the *original* titles to the API for the best semantic context.
-    console.log(`[Matcher] Jaccard score ${jaccardScore.toFixed(3)} is ambiguous. Calling API...`);
+    // --- Case 3: Call API (Slow, check cache first) ---
     
-    // Pass the full config so the API knows what semanticThreshold to use
-    return await checkWithSemanticAPI(productA.title, productB.title, config);
+    // Create a unique key for this pair. Order doesn't matter.
+    const [title1, title2] = [productA.title, productB.title].sort();
+    const cacheKey = `${title1}||${title2}`;
+
+    // NEW: Check cache before calling API
+    if (apiCache.has(cacheKey)) {
+        console.log(`[Matcher] Cache HIT for: "${productA.title}" vs "${productB.title}"`);
+        return apiCache.get(cacheKey);
+    }
+    
+    console.log(`[Matcher] Cache MISS. Calling API for: "${productA.title}" vs "${productB.title}"`);
+    
+    // Call the API
+    const apiResult = await checkWithSemanticAPI(productA.title, productB.title, config);
+
+    // NEW: Store result in cache
+    apiCache.set(cacheKey, apiResult);
+    
+    return apiResult;
 }
 
 /**
- * Iterates a list of products to find the single best match for a target product.
- * NOTE: This function is now ASYNC.
- *
- * @param {object} productToMatch - The product you're looking for.
- * @param {object[]} productList - The list of products to search within.
- * @param {object} [options] - Configuration options (passed to matchProducts).
- * @returns {Promise<object | null>} - An object { item, result } or null if no match.
+ * --- HEAVILY OPTIMIZED ---
+ * Iterates a list of products in PARALLEL to find the best match.
  */
 async function findBestMatch(productToMatch, productList, options = {}) {
     let bestMatch = null;
     let bestMatchResult = { score: -1, matched: false };
 
-    for (const candidateProduct of productList) {
-        // Use 'await' since matchProducts is now async
-        const matchResult = await matchProducts(productToMatch, candidateProduct, options);
+    // 1. Create an array of *promises*. Each promise resolves
+    //    to an object containing the candidate and its match result.
+    const comparisonPromises = productList.map(candidateProduct =>
+        matchProducts(productToMatch, candidateProduct, options)
+            .then(result => ({
+                candidate: candidateProduct,
+                result: result
+            }))
+            .catch(error => ({
+                // Handle potential errors for a single comparison
+                candidate: candidateProduct,
+                result: { matched: false, score: 0, reason: `Error: ${error.message}` }
+            }))
+    );
 
-        if (matchResult.matched && matchResult.score > bestMatchResult.score) {
-            bestMatch = candidateProduct;
-            bestMatchResult = matchResult;
+    // 2. Wait for ALL promises to settle (run in parallel)
+    const allResults = await Promise.all(comparisonPromises);
 
-            // Optimization: A perfect brand+model match is unbeatable.
-            if (matchResult.method === 'brand+model') {
-                break;
-            }
+    // 3. Now, just loop through the in-memory results (very fast)
+    for (const { candidate, result } of allResults) {
+        // Find the highest score *that is also a match*
+        if (result.matched && result.score > bestMatchResult.score) {
+            bestMatch = candidate;
+            bestMatchResult = result;
         }
     }
 
@@ -206,8 +212,5 @@ async function findBestMatch(productToMatch, productList, options = {}) {
 // --- 4. Exports ---
 module.exports = {
     matchProducts,
-    findBestMatch,
-    cleanTitle,
-    extractBrand,
-    extractModelNumber
+    findBestMatch
 };

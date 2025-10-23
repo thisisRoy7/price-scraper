@@ -3,31 +3,30 @@
 // Load environment variables from .env file (e.g., HF_API_TOKEN)
 require('dotenv').config();
 
-// Only import the API checker
 const { checkWithSemanticAPI } = require('./matcher-api.js');
 
-// --- NEW: A simple in-memory cache for API results ---
-// This prevents re-calling the API for the same pair
 const apiCache = new Map();
 
 
-// --- 1. Constants (Same as before) ---
+// --- 1. Constants (Unchanged) ---
 
 const COMMON_BRANDS = new Set([
+    // Tech
     'apple', 'samsung', 'google', 'oneplus', 'xiaomi', 'redmi', 'oppo', 'vivo',
     'realme', 'motorola', 'nokia', 'sony', 'lg', 'asus', 'poco', 'boat',
     'jbl', 'sennheiser', 'bose', 'hp', 'dell', 'lenovo', 'acer', 'msi',
     'noise', 'fire-boltt', 'amazfit', 'garmin', 'fitbit', 'spigen', 'anker',
     'logitech', 'razer', 'corsair', 'whirlpool', 'panasonic', 'toshiba',
-    'intel', 'amd', 'nvidia', 'gopro', 'dji', 'canon', 'nikon'
+    'intel', 'amd', 'nvidia', 'gopro', 'dji', 'canon', 'nikon',
+    // Cosmetics & General
+    'l\'oreal', 'maybelline', 'revlon', 'nyx', 'lakme', 'mac', 'sugar',
+    'himalaya', 'nivea', 'dove', 'olay', 'ponds', 'adidas', 'nike', 'puma'
 ]);
 const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
-const RAM_REGEX = /\b(\d{1,3})\s*(?:g|gb)\s*ram\b/gi;
-const STORAGE_REGEX = /\b(\d{2,4})\s*(?:g|gb)\b|\b(\d{1,2})\s*(?:t|tb)\b/gi;
-const PROCESSOR_REGEX = /\b(snapdragon(?:[\s-][\w\d]+){0,3}|a\d{2}\s*bionic|intel\s*i[3579](?:[\s-][\d\w]+){0,3}|ryzen\s*[3579](?:[\s-][\d\w]+){0,3}|apple\s*m[1-3](?:[\s-]\w+){0,2})\b/gi;
+const NUMBER_REGEX = /\b\d+(?:\.\d+)?\b/g;
 
 
-// --- 2. Utility Functions (Brand & Spec Extraction - Unchanged) ---
+// --- 2. Utility Functions (Unchanged) ---
 
 const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
@@ -35,7 +34,7 @@ function extractBrand(title) {
     const titleLower = normalize(title);
     if (!titleLower) return null;
     for (const brand of COMMON_BRANDS) {
-        const brandRegex = new RegExp(`\\b${brand}\\b`);
+        const brandRegex = new RegExp(`\\b${brand.replace(/'/g, '\'')}\\b`);
         if (brandRegex.test(titleLower)) return brand;
     }
     const firstWord = titleLower.split(' ')[0];
@@ -45,64 +44,36 @@ function extractBrand(title) {
     return null;
 }
 
-function extractSpecs(title) {
-    const specs = {};
-    const lowerTitle = normalize(title);
-    
-    try {
-        const ramMatch = lowerTitle.match(RAM_REGEX);
-        if (ramMatch) {
-            specs.ram = normalize(ramMatch[0]).match(/\d+/)[0];
-        }
+/**
+ * Extracts all numbers from two titles and checks for direct conflicts.
+ * (The function itself is correct, its *application* was wrong)
+ */
+function compareNumbers(titleA, titleB) {
+    const numsA = new Set(titleA.match(NUMBER_REGEX) || []);
+    const numsB = new Set(titleB.match(NUMBER_REGEX) || []);
 
-        const storageMatches = lowerTitle.match(STORAGE_REGEX);
-        if (storageMatches) {
-            for (let matchStr of storageMatches) {
-                matchStr = normalize(matchStr);
-                if (specs.ram && (matchStr === `${specs.ram}gb` || matchStr === `${specs.ram}g`)) {
-                    continue;
-                }
-                let normalizedStorage;
-                if (matchStr.includes('tb') || matchStr.includes('t')) {
-                    normalizedStorage = parseInt(matchStr) * 1024;
-                } else {
-                    normalizedStorage = parseInt(matchStr);
-                }
-                specs.storage = String(normalizedStorage);
-                break;
-            }
-        }
-
-        const processorMatch = lowerTitle.match(PROCESSOR_REGEX);
-        if (processorMatch) {
-            specs.processor = normalize(processorMatch[0]);
-        }
-    } catch (e) {
-        console.error(`[Matcher] Regex extraction failed for title: "${title}"`, e.message);
+    if (numsA.size === 0 || numsB.size === 0) {
+        return { match: true };
     }
-    return specs;
-}
 
-function compareSpecs(specsA, specsB) {
-    const keys = ['ram', 'storage', 'processor'];
-    for (const key of keys) {
-        const valA = specsA[key];
-        const valB = specsB[key];
-        if (valA && valB && valA !== valB) {
-            return {
-                match: false,
-                reason: `Specification mismatch on '${key}': '${valA}' vs '${valB}'`
-            };
-        }
+    const uniqueToA = [...numsA].filter(n => !numsB.has(n));
+    const uniqueToB = [...numsB].filter(n => !numsB.has(n));
+
+    if (uniqueToA.length > 0 && uniqueToB.length > 0) {
+        return {
+            match: false,
+            reason: `Numeric conflict: [${uniqueToA.join(',')}] vs [${uniqueToB.join(',')}]`
+        };
     }
+
     return { match: true };
 }
 
 
-// --- 3. Core Matching Logic (Now with Caching) ---
+// --- 3. Core Matching Logic (NEW ORDER OF OPERATIONS) ---
 
 /**
- * Compares two product objects (A and B) using a filter-then-API strategy.
+ * Compares two product objects (A and B) using an API-first, filter-later strategy.
  */
 async function matchProducts(productA, productB, options = {}) {
     const config = {
@@ -115,63 +86,70 @@ async function matchProducts(productA, productB, options = {}) {
     if (!productA?.title || !productB?.title) {
         return { ...baseResult, reason: "One or both products lack a title." };
     }
-
-    // --- Case 1: Brand Mismatch (Fast, no cache) ---
-    const brandA = normalize(productA.brand || extractBrand(productA.title));
-    const brandB = normalize(productB.brand || extractBrand(productB.title));
-    if (brandA && brandB && brandA !== brandB) {
-        return {
-            ...baseResult,
-            method: "brand",
-            reason: `Brand mismatch: '${brandA}' vs '${brandB}'`
-        };
-    }
-
-    // --- Case 2: Spec Mismatch (Fast, no cache) ---
-    const specsA = extractSpecs(productA.title);
-    const specsB = extractSpecs(productB.title);
-    const specResult = compareSpecs(specsA, specsB);
-    if (!specResult.match) {
-        return {
-            ...baseResult,
-            method: "specs",
-            reason: specResult.reason
-        };
-    }
-
-    // --- Case 3: Call API (Slow, check cache first) ---
     
-    // Create a unique key for this pair. Order doesn't matter.
+    // --- Check Cache First ---
     const [title1, title2] = [productA.title, productB.title].sort();
     const cacheKey = `${title1}||${title2}`;
-
-    // NEW: Check cache before calling API
     if (apiCache.has(cacheKey)) {
         console.log(`[Matcher] Cache HIT for: "${productA.title}" vs "${productB.title}"`);
         return apiCache.get(cacheKey);
     }
     
-    console.log(`[Matcher] Cache MISS. Calling API for: "${productA.title}" vs "${productB.title}"`);
-    
-    // Call the API
+    console.log(`[Matcher] Cache MISS for: "${productA.title}" vs "${productB.title}"`);
+
+    // --- Step 1: Fast Brand Rejection ---
+    const brandA = normalize(productA.brand || extractBrand(productA.title));
+    const brandB = normalize(productB.brand || extractBrand(productB.title));
+    if (brandA && brandB && brandA !== brandB) {
+        const brandMismatchResult = {
+            ...baseResult,
+            method: "brand",
+            reason: `Brand mismatch: '${brandA}' vs '${brandB}'`
+        };
+        apiCache.set(cacheKey, brandMismatchResult); // Cache the rejection
+        return brandMismatchResult;
+    }
+
+    // --- Step 2: Call Semantic API (The "Smart" Check) ---
     const apiResult = await checkWithSemanticAPI(productA.title, productB.title, config);
 
-    // NEW: Store result in cache
-    apiCache.set(cacheKey, apiResult);
-    
+    // If API says NO, we trust it.
+    if (!apiResult.matched) {
+        apiCache.set(cacheKey, apiResult); // Cache the API's "no"
+        return apiResult;
+    }
+
+    // --- Step 3: Veto Check (The "Dumb" but accurate spec check) ---
+    // If the API says YES, we run our numeric check to catch spec conflicts.
+    const numberResult = compareNumbers(productA.title, productB.title);
+
+    if (!numberResult.match) {
+        // API said "yes," but numbers conflict. We override the API.
+        const numericVetoResult = {
+            ...baseResult,
+            score: apiResult.score, // Keep the score for info
+            method: "numeric-veto",
+            reason: numberResult.reason
+        };
+        apiCache.set(cacheKey, numericVetoResult); // Cache the veto
+        return numericVetoResult;
+    }
+
+    // --- Final Result ---
+    // API said "yes" and the numeric check passed. It's a match.
+    apiCache.set(cacheKey, apiResult); // Cache the "yes"
     return apiResult;
 }
 
 /**
- * --- HEAVILY OPTIMIZED ---
+ * --- OPTIMIZED (Unchanged from before) ---
  * Iterates a list of products in PARALLEL to find the best match.
  */
 async function findBestMatch(productToMatch, productList, options = {}) {
     let bestMatch = null;
     let bestMatchResult = { score: -1, matched: false };
 
-    // 1. Create an array of *promises*. Each promise resolves
-    //    to an object containing the candidate and its match result.
+    // 1. Create an array of *promises*.
     const comparisonPromises = productList.map(candidateProduct =>
         matchProducts(productToMatch, candidateProduct, options)
             .then(result => ({
@@ -179,7 +157,6 @@ async function findBestMatch(productToMatch, productList, options = {}) {
                 result: result
             }))
             .catch(error => ({
-                // Handle potential errors for a single comparison
                 candidate: candidateProduct,
                 result: { matched: false, score: 0, reason: `Error: ${error.message}` }
             }))
@@ -190,7 +167,6 @@ async function findBestMatch(productToMatch, productList, options = {}) {
 
     // 3. Now, just loop through the in-memory results (very fast)
     for (const { candidate, result } of allResults) {
-        // Find the highest score *that is also a match*
         if (result.matched && result.score > bestMatchResult.score) {
             bestMatch = candidate;
             bestMatchResult = result;

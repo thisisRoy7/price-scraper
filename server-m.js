@@ -1,7 +1,8 @@
 // server-m.js
 
 const express = require('express');
-const { exec } = require('child_process');
+// MODIFIED: Import 'spawn' instead of 'exec'
+const { spawn } = require('child_process');
 const { MongoClient } = require('mongodb'); // Use the MongoDB driver
 
 const app = express();
@@ -28,6 +29,7 @@ let collection;
   }
 })();
 
+// --- MODIFIED: Switched from exec to spawn ---
 app.post('/compare', async (req, res) => {
   const { productName, numPages, forceRefresh } = req.body;
   if (!productName || !numPages) {
@@ -35,7 +37,7 @@ app.post('/compare', async (req, res) => {
   }
 
   try {
-    // 1️⃣ Check cache, but only if `forceRefresh` is false
+    // 1️⃣ Check cache (no change here)
     if (!forceRefresh) {
       const cachedDoc = await collection.findOne({ query: productName });
       
@@ -50,28 +52,53 @@ app.post('/compare', async (req, res) => {
 
     console.log(`[SERVER] 🟡 Cache MISS or REFRESH for "${productName}". Running live scrape.`);
 
-    // 2️⃣ Run scraper script if no cache hit or if refresh is forced
-    // Using quotes to handle the space in the folder name
+    // 2️⃣ Run scraper script using spawn
+    // We use { shell: true } to allow the command to interpret quotes,
+    // just like 'exec' did. This handles spaces in file paths.
     const command = `node "comparison-block/compare.js" "${productName}" ${numPages}`;
-    console.log(`🚀 Running: ${command}`);
+    console.log(`🚀 Spawning: ${command}`);
+    
+    // Use spawn instead of exec
+    const child = spawn(command, { shell: true });
 
-    exec(command, async (error, stdout, stderr) => {
-      if (error) {
-        console.error('Execution Error:', stderr);
+    let fullStdout = '';
+    let fullStderr = '';
+
+    // Listen to the stdout stream
+    child.stdout.on('data', (data) => {
+      fullStdout += data.toString();
+    });
+
+    // Listen to the stderr stream
+    child.stderr.on('data', (data) => {
+      fullStderr += data.toString();
+    });
+
+    // Handle errors in spawning the process itself
+    child.on('error', (err) => {
+        console.error('Failed to start child process:', err);
+        return res.status(500).json({ error: `Failed to start scraper: ${err.message}` });
+    });
+
+    // Listen for the process to exit
+    child.on('close', async (code) => {
+      // 'code' is the exit code. 0 means success.
+      if (code !== 0) {
+        console.error(`Execution Error (Code ${code}):`, fullStderr);
         console.log('--- STDOUT (from error) ---');
-        console.log(stdout); // Log stdout to see what the script *did* output
+        console.log(fullStdout); // Log what we got before it failed
         console.log('---------------------------');
-        return res.status(500).json({ error: `Scraper error: ${stderr}` });
+        // Send the stderr, which is more likely to contain the *actual* error
+        return res.status(500).json({ error: `Scraper error: ${fullStderr || 'Process exited with non-zero code.'}` });
       }
 
+      // --- Process Succeeded (code === 0) ---
+      
       let jsonData;
       try {
-        // --- START: MODIFIED LOGIC ---
-
-        // 1. Split all output lines into an array
-        const lines = stdout.split('\n').filter(line => line.trim() !== '');
-
-        // 2. Get the very last line of output
+        // Your "parse last line" logic is perfect.
+        // We just apply it to the *complete* stdout string.
+        const lines = fullStdout.split('\n').filter(line => line.trim() !== '');
         const lastLine = lines.pop(); 
 
         if (!lastLine) {
@@ -79,20 +106,18 @@ app.post('/compare', async (req, res) => {
           return res.status(500).json({ error: 'Scraper script gave no output.' });
         }
 
-        // 3. Parse *only* the last line, which we assume is the JSON
+        // 3. Parse *only* the last line
         jsonData = JSON.parse(lastLine);
-
-        // --- END: MODIFIED LOGIC ---
 
       } catch (parseError) {
         console.error('JSON Parse Error:', parseError.message);
         console.log('--- FAILED STDOUT (Could not parse as JSON) ---');
-        console.log(stdout); // This will show you exactly what the script outputted
+        console.log(fullStdout); // This will show you exactly what the script outputted
         console.log('------------------------------------------------');
         return res.status(500).json({ error: 'Invalid JSON from scraper script' });
       }
 
-      // 3️⃣ Store in MongoDB cache
+      // 3️⃣ Store in MongoDB cache (no change here)
       try {
         await collection.updateOne(
           { query: productName },
@@ -120,6 +145,7 @@ app.post('/compare', async (req, res) => {
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
 });
+// --- END OF MODIFIED BLOCK ---
 
 app.listen(PORT, () => {
   console.log(`🎉 Server with MongoDB running at http://localhost:${PORT}`);

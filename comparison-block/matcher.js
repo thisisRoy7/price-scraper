@@ -3,12 +3,41 @@
 // Load environment variables from .env file (e.g., HF_API_TOKEN)
 require('dotenv').config();
 
+// --- 1. THE MATCHER SWITCH ---
+/**
+ * Controls which semantic matching engine to use.
+ * 'api'   - Uses the Hugging Face API (requires HF_API_TOKEN).
+ * 'local' - Uses the on-device model via @xenova/transformers.
+ */
+const MATCHER_MODE = 'local'; // CHANGE THIS VALUE ('api' or 'local')
+// -----------------------------
+
+
+// --- 2. Imports & Cache ---
+
+// Import both implementations
 const { checkWithSemanticAPI } = require('./matcher-api.js');
+const { checkWithLocalModel } = require('./matcher-own.js');
 
-const apiCache = new Map();
+// This cache will store results from *either* the API or the local model.
+const semanticCache = new Map();
 
 
-// --- 1. Constants (Unchanged) ---
+/**
+ * Dispatches to the correct semantic checker based on MATCHER_MODE.
+ * This is the only function that 'matchProducts' needs to call.
+ */
+function checkSemanticSimilarity(titleA, titleB, config) {
+    if (MATCHER_MODE === 'local') {
+        // Use the locally-run model
+        return checkWithLocalModel(titleA, titleB, config);
+    }
+    // Default to using the API
+    return checkWithSemanticAPI(titleA, titleB, config);
+}
+
+
+// --- 3. Constants (Unchanged) ---
 
 const COMMON_BRANDS = new Set([
     // Tech
@@ -26,7 +55,7 @@ const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
 const NUMBER_REGEX = /\b\d+(?:\.\d+)?\b/g;
 
 
-// --- 2. Utility Functions (Unchanged) ---
+// --- 4. Utility Functions (Unchanged) ---
 
 const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
@@ -46,7 +75,6 @@ function extractBrand(title) {
 
 /**
  * Extracts all numbers from two titles and checks for direct conflicts.
- * (The function itself is correct, its *application* was wrong)
  */
 function compareNumbers(titleA, titleB) {
     const numsA = new Set(titleA.match(NUMBER_REGEX) || []);
@@ -70,10 +98,10 @@ function compareNumbers(titleA, titleB) {
 }
 
 
-// --- 3. Core Matching Logic (NEW ORDER OF OPERATIONS) ---
+// --- 5. Core Matching Logic (Refactored) ---
 
 /**
- * Compares two product objects (A and B) using an API-first, filter-later strategy.
+ * Compares two product objects (A and B) using a smart-check-first, filter-later strategy.
  */
 async function matchProducts(productA, productB, options = {}) {
     const config = {
@@ -90,9 +118,9 @@ async function matchProducts(productA, productB, options = {}) {
     // --- Check Cache First ---
     const [title1, title2] = [productA.title, productB.title].sort();
     const cacheKey = `${title1}||${title2}`;
-    if (apiCache.has(cacheKey)) {
+    if (semanticCache.has(cacheKey)) {
         console.log(`[Matcher] Cache HIT for: "${productA.title}" vs "${productB.title}"`);
-        return apiCache.get(cacheKey);
+        return semanticCache.get(cacheKey);
     }
     
     console.log(`[Matcher] Cache MISS for: "${productA.title}" vs "${productB.title}"`);
@@ -106,39 +134,40 @@ async function matchProducts(productA, productB, options = {}) {
             method: "brand",
             reason: `Brand mismatch: '${brandA}' vs '${brandB}'`
         };
-        apiCache.set(cacheKey, brandMismatchResult); // Cache the rejection
+        semanticCache.set(cacheKey, brandMismatchResult); // Cache the rejection
         return brandMismatchResult;
     }
 
-    // --- Step 2: Call Semantic API (The "Smart" Check) ---
-    const apiResult = await checkWithSemanticAPI(productA.title, productB.title, config);
+    // --- Step 2: Call Semantic Matcher (The "Smart" Check) ---
+    // This now calls our dispatcher function instead of the API directly.
+    const semanticResult = await checkSemanticSimilarity(productA.title, productB.title, config);
 
-    // If API says NO, we trust it.
-    if (!apiResult.matched) {
-        apiCache.set(cacheKey, apiResult); // Cache the API's "no"
-        return apiResult;
+    // If the matcher says NO, we trust it.
+    if (!semanticResult.matched) {
+        semanticCache.set(cacheKey, semanticResult); // Cache the "no"
+        return semanticResult;
     }
 
     // --- Step 3: Veto Check (The "Dumb" but accurate spec check) ---
-    // If the API says YES, we run our numeric check to catch spec conflicts.
+    // If the matcher says YES, we run our numeric check to catch spec conflicts.
     const numberResult = compareNumbers(productA.title, productB.title);
 
     if (!numberResult.match) {
-        // API said "yes," but numbers conflict. We override the API.
+        // Matcher said "yes," but numbers conflict. We override the matcher.
         const numericVetoResult = {
             ...baseResult,
-            score: apiResult.score, // Keep the score for info
+            score: semanticResult.score, // Keep the score for info
             method: "numeric-veto",
             reason: numberResult.reason
         };
-        apiCache.set(cacheKey, numericVetoResult); // Cache the veto
+        semanticCache.set(cacheKey, numericVetoResult); // Cache the veto
         return numericVetoResult;
     }
 
     // --- Final Result ---
-    // API said "yes" and the numeric check passed. It's a match.
-    apiCache.set(cacheKey, apiResult); // Cache the "yes"
-    return apiResult;
+    // Matcher said "yes" and the numeric check passed. It's a match.
+    semanticCache.set(cacheKey, semanticResult); // Cache the "yes"
+    return semanticResult;
 }
 
 /**
@@ -185,7 +214,7 @@ async function findBestMatch(productToMatch, productList, options = {}) {
 }
 
 
-// --- 4. Exports ---
+// --- 6. Exports ---
 module.exports = {
     matchProducts,
     findBestMatch

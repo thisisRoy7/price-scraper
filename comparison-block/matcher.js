@@ -9,7 +9,7 @@ require('dotenv').config();
  * 'api'   - Uses the Hugging Face API (requires HF_API_TOKEN).
  * 'local' - Uses the on-device model via @xenova/transformers.
  */
-const MATCHER_MODE = 'local'; // CHANGE THIS VALUE ('api' or 'local')
+const MATCHER_MODE = 'local'; // ('api' or 'local')
 // -----------------------------
 
 
@@ -80,23 +80,31 @@ function compareNumbers(titleA, titleB) {
     const numsA = new Set(titleA.match(NUMBER_REGEX) || []);
     const numsB = new Set(titleB.match(NUMBER_REGEX) || []);
 
-    if (numsA.size === 0 || numsB.size === 0) {
+    // If neither title has numbers, there's no conflict.
+    if (numsA.size === 0 && numsB.size === 0) {
         return { match: true };
     }
 
     const uniqueToA = [...numsA].filter(n => !numsB.has(n));
     const uniqueToB = [...numsB].filter(n => !numsB.has(n));
 
-    if (uniqueToA.length > 0 && uniqueToB.length > 0) {
+    // **THE FIX IS HERE:**
+    // We check for '||' (OR) instead of '&&' (AND).
+    if (uniqueToA.length > 0 || uniqueToB.length > 0) {
+        // Construct a clearer reason for logging
+        const reasonParts = [];
+        if (uniqueToA.length > 0) reasonParts.push(`A has [${uniqueToA.join(',')}]`);
+        if (uniqueToB.length > 0) reasonParts.push(`B has [${uniqueToB.join(',')}]`);
+        
         return {
             match: false,
-            reason: `Numeric conflict: [${uniqueToA.join(',')}] vs [${uniqueToB.join(',')}]`
+            reason: `Numeric mismatch: ${reasonParts.join('; ')}`
         };
     }
 
+    // If we're here, the sets of numbers are identical.
     return { match: true };
 }
-
 
 // --- 5. Core Matching Logic (Refactored) ---
 

@@ -1,4 +1,4 @@
-// matcher-api.js
+// comparison-block/matcher-api.js
 
 /**
  * The Hugging Face Inference API URL for our chosen sentence-similarity model.

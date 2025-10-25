@@ -1,83 +1,14 @@
-// This will hold the interval for our "fake" progress bar
-let progressInterval = null;
+// Public/js/api-handler.js
 
-// This helper function manages the status display.
-const updateStatus = (type, message, elements) => {
-    // Destructure the new elements
-    const { statusDisplay, statusIcon, statusText, loader, progressBarContainer, progressBarInner } = elements;
-    const statusClasses = ['text-warning', 'text-success', 'text-danger'];
-    
-    // --- Reset general states ---
-    statusDisplay.classList.remove(...statusClasses);
-    statusIcon.innerHTML = '';
-    loader.classList.add('hidden');
-    statusText.classList.remove('text-text-secondary');
+// Import the UI status manager
+import { updateStatus } from './progress-bar.js';
 
-    // Clear any fake progress timer that might be running
-    if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-    }
-    
-    // --- Apply new state ---
-    if (type === 'running') {
-        statusDisplay.classList.add('text-warning');
-        statusIcon.innerHTML = '<i class="ph-bold ph-gear-six animate-spin"></i>';
-        statusText.textContent = message || 'Scraping data...';
-        loader.classList.remove('hidden');
-
-        // --- Start the "better fake" progress bar ---
-        progressBarContainer.classList.remove('hidden');
-
-        let progress = Math.random() * 2.7 + 1; // Start around 3–7%
-        progressBarInner.style.width = `${progress}%`; // Start immediately
-
-        progressInterval = setInterval(() => {
-            if (progress < 90) { 
-                // Random easing: 5%–12% of the remaining distance
-                const easingFactor = Math.random() * 0.07 + 0.04;
-                progress += (90 - progress) * easingFactor;
-
-                // Cap to avoid overshoot
-                if (progress > 90) progress = 90;
-
-                progressBarInner.style.width = `${progress.toFixed(2)}%`;
-            } else {
-                progressBarInner.style.width = '90%';
-            }
-        }, Math.floor(Math.random() * 2265) + 620); // Interval: 500–800ms (slower, varied)
-
-    } else if (type === 'success') {
-        statusDisplay.classList.add('text-success');
-        statusIcon.innerHTML = '<i class="ph-bold ph-check-circle"></i>';
-        statusText.textContent = message || 'Comparison complete!';
-
-        // --- Animate to 100% on success ---
-        progressBarContainer.classList.remove('hidden'); // <-- SHOW
-        progressBarInner.style.width = '100%';
-        
-        // Hide the bar after its transition animation (300ms) finishes
-        setTimeout(() => {
-            progressBarContainer.classList.add('hidden'); // <-- HIDE
-            progressBarInner.style.width = '0%'; // <-- RESET
-        }, 500); // 300ms transition + 200ms buffer
-
-    } else if (type === 'error') {
-        statusDisplay.classList.add('text-danger');
-        statusIcon.innerHTML = '<i class="ph-bold ph-x-circle"></i>';
-        statusText.textContent = `Error: ${message}`;
-        progressBarContainer.classList.add('hidden'); // <-- HIDE
-        progressBarInner.style.width = '0%'; // <-- RESET
-        
-    } else { // 'idle'
-        statusText.classList.add('text-text-secondary');
-        statusText.textContent = 'Awaiting comparison...';
-        progressBarContainer.classList.add('hidden'); // <-- HIDE
-        progressBarInner.style.width = '0%'; // <-- RESET
-    }
-};
-
-// EXPORT: The main function to perform the comparison.
+/**
+ * Performs the main API comparison call.
+ * @param {boolean} isRefresh - Whether to force a new scrape.
+ * @param {object} elements - An object containing all the DOM elements.
+ * @param {function} renderResultsFunc - The function to call to render the results grid.
+ */
 export const performComparison = async (isRefresh, elements, renderResultsFunc) => {
     const { productNameInput, numPagesInput, resultsGrid, resultsHeader, cacheInfo, cacheDate, compareBtn, refreshBtn } = elements;
     
@@ -91,6 +22,8 @@ export const performComparison = async (isRefresh, elements, renderResultsFunc) 
     compareBtn.disabled = true;
     refreshBtn.disabled = true;
     compareBtn.textContent = 'Comparing...';
+    
+    // Use the imported status updater
     updateStatus('running', isRefresh ? 'Refreshing data...' : 'Starting scrapers...', elements);
 
     try {

@@ -1,5 +1,3 @@
-// comparison-block/ matcher.js
-
 // Load environment variables from .env file (e.g., HF_API_TOKEN)
 require('dotenv').config();
 
@@ -37,7 +35,7 @@ function checkSemanticSimilarity(titleA, titleB, config) {
 }
 
 
-// --- 3. Constants (Unchanged) ---
+// --- 3. Constants (With Additions) ---
 
 const COMMON_BRANDS = new Set([
     // Tech
@@ -51,11 +49,21 @@ const COMMON_BRANDS = new Set([
     'l\'oreal', 'maybelline', 'revlon', 'nyx', 'lakme', 'mac', 'sugar',
     'himalaya', 'nivea', 'dove', 'olay', 'ponds', 'adidas', 'nike', 'puma'
 ]);
+
+// Set of model-defining words. A conflict here is a strong "no".
+const SPEC_WORDS = new Set([
+    'pro', 'plus', 'ultra', 'max', 'lite', 
+    'fe', 'fan edition', 'se', 'go', 'mini'
+]);
+
 const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
-const NUMBER_REGEX = /\b\d+(?:\.\d+)?\b/g;
+
+// This regex finds *any* sequence of digits,
+// even if they are attached to letters (like "8GB" or "5mm").
+const NUMBER_REGEX = /\d+(?:\.\d+)?/g;
 
 
-// --- 4. Utility Functions (Brand logic unchanged) ---
+// --- 4. Utility Functions (With Additions) ---
 
 const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
@@ -74,13 +82,28 @@ function extractBrand(title) {
 }
 
 /**
- * Extracts all numbers from two titles and checks for direct conflicts.
+ * Extracts key spec/model words from a title.
+ * e.g., "iPhone 15 Pro Max" -> Set {"pro", "max"}
+ */
+function extractSpecWords(title) {
+    const titleLower = ` ${normalize(title)} `; // Add spaces for boundary checks
+    const foundSpecs = new Set();
+    for (const spec of SPEC_WORDS) {
+        // Use spaces to ensure we match whole words
+        if (titleLower.includes(` ${spec} `)) {
+            foundSpecs.add(spec);
+        }
+    }
+    return foundSpecs;
+}
+
+/**
+ * Extracts all numbers from two titles and checks for non-identical sets.
  */
 function compareNumbers(titleA, titleB) {
     const numsA = new Set(titleA.match(NUMBER_REGEX) || []);
     const numsB = new Set(titleB.match(NUMBER_REGEX) || []);
 
-    // If neither title has numbers, there's no conflict.
     if (numsA.size === 0 && numsB.size === 0) {
         return { match: true };
     }
@@ -88,23 +111,22 @@ function compareNumbers(titleA, titleB) {
     const uniqueToA = [...numsA].filter(n => !numsB.has(n));
     const uniqueToB = [...numsB].filter(n => !numsB.has(n));
 
-    // --- MODIFICATION #1 ---
-    // Reverted from || to &&.
-    // This rejects only if there's a direct CONFLICT (e.g., 128 vs 256),
-    // but ALLOWS subset matches (e.g., "iPhone 15" vs "iPhone 15 256GB").
-    if (uniqueToA.length > 0 && uniqueToB.length > 0) {
-        // Construct a clearer reason for logging
+    // --- MODIFIED (Strict Logic) ---
+    // Changed from && to ||
+    // This now vetoes if *any* number is different, disallowing subset matches.
+    if (uniqueToA.length > 0 || uniqueToB.length > 0) {
         const reasonParts = [];
-        if (uniqueToA.length > 0) reasonParts.push(`A has [${uniqueToA.join(',')}]`);
-        if (uniqueToB.length > 0) reasonParts.push(`B has [${uniqueToB.join(',')}]`);
+        if (uniqueToA.length > 0) reasonParts.push(`A has unique [${uniqueToA.join(',')}]`);
+        if (uniqueToB.length > 0) reasonParts.push(`B has unique [${uniqueToB.join(',')}]`);
         
         return {
             match: false,
-            reason: `Numeric conflict: ${reasonParts.join('; ')}`
+            reason: `Numeric sets not identical: ${reasonParts.join('; ')}`
         };
     }
+    // --- END MODIFICATION ---
 
-    // If we're here, the sets of numbers are compatible (identical or subset).
+    // Sets are identical
     return { match: true };
 }
 
@@ -115,10 +137,7 @@ function compareNumbers(titleA, titleB) {
  */
 async function matchProducts(productA, productB, options = {}) {
     const config = {
-        // --- MODIFICATION #2 ---
-        // Lowered threshold to increase recall.
-        // This widens the funnel for the semantic check.
-        semanticThreshold: 0.78, 
+        semanticThreshold: 0.78, // Keep the wider funnel
         ...options
     };
 
@@ -138,31 +157,24 @@ async function matchProducts(productA, productB, options = {}) {
     
     console.log(`[Matcher] Cache MISS for: "${productA.title}" vs "${productB.title}"`);
 
-    // --- MODIFICATION #3 ---
     // --- Step 1: Fast Brand Rejection (Revised Logic) ---
     const brandA = normalize(productA.brand || extractBrand(productA.title));
     const brandB = normalize(productB.brand || extractBrand(productB.title));
 
-    // Check if these brands are from your "known" list
     const isBrandAKnown = brandA && COMMON_BRANDS.has(brandA);
     const isBrandBKnown = brandB && COMMON_BRANDS.has(brandB);
 
-    // ONLY reject if both brands are KNOWN and DIFFERENT.
-    // This prevents "galaxy" (a guess) from mismatching with "samsung" (known).
     if (isBrandAKnown && isBrandBKnown && brandA !== brandB) {
         const brandMismatchResult = {
             ...baseResult,
             method: "brand",
             reason: `KNOWN Brand mismatch: '${brandA}' vs '${brandB}'`
         };
-        semanticCache.set(cacheKey, brandMismatchResult); // Cache the rejection
+        semanticCache.set(cacheKey, brandMismatchResult);
         return brandMismatchResult;
     }
-    // --- End of Modified Section ---
-
-
+   
     // --- Step 2: Call Semantic Matcher (The "Smart" Check) ---
-    // This now calls our dispatcher function instead of the API directly.
     const semanticResult = await checkSemanticSimilarity(productA.title, productB.title, config);
 
     // If the matcher says NO, we trust it.
@@ -171,15 +183,37 @@ async function matchProducts(productA, productB, options = {}) {
         return semanticResult;
     }
 
-    // --- Step 3: Veto Check (The "Dumb" but accurate spec check) ---
-    // If the matcher says YES, we run our numeric check to catch spec conflicts.
+    // --- Step 2.5: Spec Word Veto (Strict Logic) ---
+    const specsA = extractSpecWords(productA.title);
+    const specsB = extractSpecWords(productB.title);
+
+    if (specsA.size > 0 || specsB.size > 0) { 
+        const uniqueSpecsA = [...specsA].filter(s => !specsB.has(s));
+        const uniqueSpecsB = [...specsB].filter(s => !specsA.has(s));
+
+        // --- MODIFIED (Strict Logic) ---
+        // Changed from && to ||
+        // This now vetoes if *any* spec word is different.
+        if (uniqueSpecsA.length > 0 || uniqueSpecsB.length > 0) {
+        // --- END MODIFICATION ---
+            const specVetoResult = {
+                ...baseResult,
+                score: semanticResult.score,
+                method: "spec-word-veto",
+                reason: `Spec word sets not identical: A has [${uniqueSpecsA.join(',') || 'none'}] unique, B has [${uniqueSpecsB.join(',') || 'none'}] unique`
+            };
+            semanticCache.set(cacheKey, specVetoResult);
+            return specVetoResult;
+        }
+    }
+
+    // --- Step 3: Numeric Veto (Strict Logic) ---
     const numberResult = compareNumbers(productA.title, productB.title);
 
     if (!numberResult.match) {
-        // Matcher said "yes," but numbers conflict. We override the matcher.
         const numericVetoResult = {
             ...baseResult,
-            score: semanticResult.score, // Keep the score for info
+            score: semanticResult.score,
             method: "numeric-veto",
             reason: numberResult.reason
         };
@@ -188,7 +222,7 @@ async function matchProducts(productA, productB, options = {}) {
     }
 
     // --- Final Result ---
-    // Matcher said "yes" and the numeric check passed. It's a match.
+    // Matcher said "yes" and both spec word and numeric checks passed.
     semanticCache.set(cacheKey, semanticResult); // Cache the "yes"
     return semanticResult;
 }

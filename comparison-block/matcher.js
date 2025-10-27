@@ -1,3 +1,5 @@
+// comparison-block/ matcher.js
+
 // Load environment variables from .env file (e.g., HF_API_TOKEN)
 require('dotenv').config();
 
@@ -35,7 +37,7 @@ function checkSemanticSimilarity(titleA, titleB, config) {
 }
 
 
-// --- 3. Constants (With Additions) ---
+// --- 3. Constants (Unchanged) ---
 
 const COMMON_BRANDS = new Set([
     // Tech
@@ -63,7 +65,7 @@ const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
 const NUMBER_REGEX = /\d+(?:\.\d+)?/g;
 
 
-// --- 4. Utility Functions (With Additions) ---
+// --- 4. Utility Functions (Unchanged) ---
 
 const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
@@ -111,9 +113,8 @@ function compareNumbers(titleA, titleB) {
     const uniqueToA = [...numsA].filter(n => !numsB.has(n));
     const uniqueToB = [...numsB].filter(n => !numsB.has(n));
 
-    // --- MODIFIED (Strict Logic) ---
-    // Changed from && to ||
-    // This now vetoes if *any* number is different, disallowing subset matches.
+    // --- Strict Veto Logic (from last time) ---
+    // This vetoes if *any* number is different.
     if (uniqueToA.length > 0 || uniqueToB.length > 0) {
         const reasonParts = [];
         if (uniqueToA.length > 0) reasonParts.push(`A has unique [${uniqueToA.join(',')}]`);
@@ -124,7 +125,6 @@ function compareNumbers(titleA, titleB) {
             reason: `Numeric sets not identical: ${reasonParts.join('; ')}`
         };
     }
-    // --- END MODIFICATION ---
 
     // Sets are identical
     return { match: true };
@@ -157,22 +157,34 @@ async function matchProducts(productA, productB, options = {}) {
     
     console.log(`[Matcher] Cache MISS for: "${productA.title}" vs "${productB.title}"`);
 
-    // --- Step 1: Fast Brand Rejection (Revised Logic) ---
+    // --- MODIFIED: Step 1: Smart Brand Veto ---
     const brandA = normalize(productA.brand || extractBrand(productA.title));
     const brandB = normalize(productB.brand || extractBrand(productB.title));
 
-    const isBrandAKnown = brandA && COMMON_BRANDS.has(brandA);
-    const isBrandBKnown = brandB && COMMON_BRANDS.has(brandB);
+    if (brandA && brandB && brandA !== brandB) {
+        // We have a mismatch. Now we decide if it's a "real" veto.
+        const isBrandAKnown = COMMON_BRANDS.has(brandA);
+        const isBrandBKnown = COMMON_BRANDS.has(brandB);
 
-    if (isBrandAKnown && isBrandBKnown && brandA !== brandB) {
-        const brandMismatchResult = {
-            ...baseResult,
-            method: "brand",
-            reason: `KNOWN Brand mismatch: '${brandA}' vs '${brandB}'`
-        };
-        semanticCache.set(cacheKey, brandMismatchResult);
-        return brandMismatchResult;
+        const bothKnown = isBrandAKnown && isBrandBKnown;
+        const bothUnknown = !isBrandAKnown && !isBrandBKnown;
+
+        // Veto if:
+        // 1. Both brands are KNOWN and different (e.g., "samsung" vs "apple")
+        // 2. Both brands are UNKNOWN and different (e.g., "toroka" vs "beauty")
+        if (bothKnown || bothUnknown) {
+            const brandMismatchResult = {
+                ...baseResult,
+                method: "brand",
+                reason: `Brand mismatch: '${brandA}' vs '${brandB}'`
+            };
+            semanticCache.set(cacheKey, brandMismatchResult);
+            return brandMismatchResult;
+        }
+        // If we are here, one brand is Known and one is Unknown (e.g. "samsung" vs "galaxy")
+        // We ALLOW this to pass to the semantic model.
     }
+    // --- END MODIFICATION ---
    
     // --- Step 2: Call Semantic Matcher (The "Smart" Check) ---
     const semanticResult = await checkSemanticSimilarity(productA.title, productB.title, config);
@@ -191,11 +203,8 @@ async function matchProducts(productA, productB, options = {}) {
         const uniqueSpecsA = [...specsA].filter(s => !specsB.has(s));
         const uniqueSpecsB = [...specsB].filter(s => !specsA.has(s));
 
-        // --- MODIFIED (Strict Logic) ---
-        // Changed from && to ||
-        // This now vetoes if *any* spec word is different.
+        // Strict Veto: Vetoes if *any* spec word is different.
         if (uniqueSpecsA.length > 0 || uniqueSpecsB.length > 0) {
-        // --- END MODIFICATION ---
             const specVetoResult = {
                 ...baseResult,
                 score: semanticResult.score,
@@ -222,7 +231,7 @@ async function matchProducts(productA, productB, options = {}) {
     }
 
     // --- Final Result ---
-    // Matcher said "yes" and both spec word and numeric checks passed.
+    // Matcher said "yes" and all veto checks passed.
     semanticCache.set(cacheKey, semanticResult); // Cache the "yes"
     return semanticResult;
 }

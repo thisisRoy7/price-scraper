@@ -55,7 +55,7 @@ const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
 const NUMBER_REGEX = /\b\d+(?:\.\d+)?\b/g;
 
 
-// --- 4. Utility Functions (Unchanged) ---
+// --- 4. Utility Functions (Brand logic unchanged) ---
 
 const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
@@ -88,9 +88,11 @@ function compareNumbers(titleA, titleB) {
     const uniqueToA = [...numsA].filter(n => !numsB.has(n));
     const uniqueToB = [...numsB].filter(n => !numsB.has(n));
 
-    // **THE FIX IS HERE:**
-    // We check for '||' (OR) instead of '&&' (AND).
-    if (uniqueToA.length > 0 || uniqueToB.length > 0) {
+    // --- MODIFICATION #1 ---
+    // Reverted from || to &&.
+    // This rejects only if there's a direct CONFLICT (e.g., 128 vs 256),
+    // but ALLOWS subset matches (e.g., "iPhone 15" vs "iPhone 15 256GB").
+    if (uniqueToA.length > 0 && uniqueToB.length > 0) {
         // Construct a clearer reason for logging
         const reasonParts = [];
         if (uniqueToA.length > 0) reasonParts.push(`A has [${uniqueToA.join(',')}]`);
@@ -98,11 +100,11 @@ function compareNumbers(titleA, titleB) {
         
         return {
             match: false,
-            reason: `Numeric mismatch: ${reasonParts.join('; ')}`
+            reason: `Numeric conflict: ${reasonParts.join('; ')}`
         };
     }
 
-    // If we're here, the sets of numbers are identical.
+    // If we're here, the sets of numbers are compatible (identical or subset).
     return { match: true };
 }
 
@@ -113,7 +115,10 @@ function compareNumbers(titleA, titleB) {
  */
 async function matchProducts(productA, productB, options = {}) {
     const config = {
-        semanticThreshold: 0.85,
+        // --- MODIFICATION #2 ---
+        // Lowered threshold to increase recall.
+        // This widens the funnel for the semantic check.
+        semanticThreshold: 0.78, 
         ...options
     };
 
@@ -133,18 +138,28 @@ async function matchProducts(productA, productB, options = {}) {
     
     console.log(`[Matcher] Cache MISS for: "${productA.title}" vs "${productB.title}"`);
 
-    // --- Step 1: Fast Brand Rejection ---
+    // --- MODIFICATION #3 ---
+    // --- Step 1: Fast Brand Rejection (Revised Logic) ---
     const brandA = normalize(productA.brand || extractBrand(productA.title));
     const brandB = normalize(productB.brand || extractBrand(productB.title));
-    if (brandA && brandB && brandA !== brandB) {
+
+    // Check if these brands are from your "known" list
+    const isBrandAKnown = brandA && COMMON_BRANDS.has(brandA);
+    const isBrandBKnown = brandB && COMMON_BRANDS.has(brandB);
+
+    // ONLY reject if both brands are KNOWN and DIFFERENT.
+    // This prevents "galaxy" (a guess) from mismatching with "samsung" (known).
+    if (isBrandAKnown && isBrandBKnown && brandA !== brandB) {
         const brandMismatchResult = {
             ...baseResult,
             method: "brand",
-            reason: `Brand mismatch: '${brandA}' vs '${brandB}'`
+            reason: `KNOWN Brand mismatch: '${brandA}' vs '${brandB}'`
         };
         semanticCache.set(cacheKey, brandMismatchResult); // Cache the rejection
         return brandMismatchResult;
     }
+    // --- End of Modified Section ---
+
 
     // --- Step 2: Call Semantic Matcher (The "Smart" Check) ---
     // This now calls our dispatcher function instead of the API directly.

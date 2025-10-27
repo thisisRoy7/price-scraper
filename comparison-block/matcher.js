@@ -49,13 +49,19 @@ const COMMON_BRANDS = new Set([
     'intel', 'amd', 'nvidia', 'gopro', 'dji', 'canon', 'nikon',
     // Cosmetics & General
     'l\'oreal', 'maybelline', 'revlon', 'nyx', 'lakme', 'mac', 'sugar',
-    'himalaya', 'nivea', 'dove', 'olay', 'ponds', 'adidas', 'nike', 'puma'
+    'himalaya', 'nivea', 'dove', 'olay', 'ponds', 'adidas', 'nike', 'puma',
+    'cetaphil'
 ]);
 
-// Set of model-defining words. A conflict here is a strong "no".
+// Set of model-defining words.
 const SPEC_WORDS = new Set([
     'pro', 'plus', 'ultra', 'max', 'lite', 
     'fe', 'fan edition', 'se', 'go', 'mini'
+]);
+
+// Set of package-defining words.
+const PACKAGING_WORDS = new Set([
+    'combo', 'pack', 'set', 'pack of', 'set of'
 ]);
 
 const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
@@ -65,7 +71,7 @@ const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
 const NUMBER_REGEX = /\d+(?:\.\d+)?/g;
 
 
-// --- 4. Utility Functions (Unchanged) ---
+// --- 4. Utility Functions (With Additions) ---
 
 const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
@@ -73,6 +79,7 @@ function extractBrand(title) {
     const titleLower = normalize(title);
     if (!titleLower) return null;
     for (const brand of COMMON_BRANDS) {
+        // Use regex for brand extraction as well for consistency
         const brandRegex = new RegExp(`\\b${brand.replace(/'/g, '\'')}\\b`);
         if (brandRegex.test(titleLower)) return brand;
     }
@@ -84,19 +91,37 @@ function extractBrand(title) {
 }
 
 /**
- * Extracts key spec/model words from a title.
- * e.g., "iPhone 15 Pro Max" -> Set {"pro", "max"}
+ * Extracts key spec/model words from a title using robust regex.
  */
 function extractSpecWords(title) {
-    const titleLower = ` ${normalize(title)} `; // Add spaces for boundary checks
+    const titleLower = normalize(title);
     const foundSpecs = new Set();
     for (const spec of SPEC_WORDS) {
-        // Use spaces to ensure we match whole words
-        if (titleLower.includes(` ${spec} `)) {
+        // Use a regex with word boundaries (\b)
+        // This correctly finds "pro" in "(pro)" or "ultra" in "s24-ultra"
+        const specRegex = new RegExp(`\\b${spec.replace(/\s+/g, '\\s+')}\\b`);
+        if (specRegex.test(titleLower)) {
             foundSpecs.add(spec);
         }
     }
     return foundSpecs;
+}
+
+/**
+ * Extracts key packaging words from a title using robust regex.
+ */
+function extractPackagingWords(title) {
+    const titleLower = normalize(title);
+    const foundPackaging = new Set();
+    for (const pkg of PACKAGING_WORDS) {
+        // Use a regex with word boundaries (\b)
+        // This correctly finds "pack of" in "(pack of 2)"
+        const pkgRegex = new RegExp(`\\b${pkg.replace(/\s+/g, '\\s+')}\\b`);
+        if (pkgRegex.test(titleLower)) {
+            foundPackaging.add(pkg);
+        }
+    }
+    return foundPackaging;
 }
 
 /**
@@ -113,8 +138,7 @@ function compareNumbers(titleA, titleB) {
     const uniqueToA = [...numsA].filter(n => !numsB.has(n));
     const uniqueToB = [...numsB].filter(n => !numsB.has(n));
 
-    // --- Strict Veto Logic (from last time) ---
-    // This vetoes if *any* number is different.
+    // Strict Veto Logic: Vetoes if *any* number is different.
     if (uniqueToA.length > 0 || uniqueToB.length > 0) {
         const reasonParts = [];
         if (uniqueToA.length > 0) reasonParts.push(`A has unique [${uniqueToA.join(',')}]`);
@@ -157,21 +181,18 @@ async function matchProducts(productA, productB, options = {}) {
     
     console.log(`[Matcher] Cache MISS for: "${productA.title}" vs "${productB.title}"`);
 
-    // --- MODIFIED: Step 1: Smart Brand Veto ---
+    // --- Step 1: Smart Brand Veto ---
     const brandA = normalize(productA.brand || extractBrand(productA.title));
     const brandB = normalize(productB.brand || extractBrand(productB.title));
 
     if (brandA && brandB && brandA !== brandB) {
-        // We have a mismatch. Now we decide if it's a "real" veto.
         const isBrandAKnown = COMMON_BRANDS.has(brandA);
         const isBrandBKnown = COMMON_BRANDS.has(brandB);
 
         const bothKnown = isBrandAKnown && isBrandBKnown;
         const bothUnknown = !isBrandAKnown && !isBrandBKnown;
 
-        // Veto if:
-        // 1. Both brands are KNOWN and different (e.g., "samsung" vs "apple")
-        // 2. Both brands are UNKNOWN and different (e.g., "toroka" vs "beauty")
+        // Veto if both brands are Known (and different) OR both are Unknown (and different)
         if (bothKnown || bothUnknown) {
             const brandMismatchResult = {
                 ...baseResult,
@@ -181,10 +202,7 @@ async function matchProducts(productA, productB, options = {}) {
             semanticCache.set(cacheKey, brandMismatchResult);
             return brandMismatchResult;
         }
-        // If we are here, one brand is Known and one is Unknown (e.g. "samsung" vs "galaxy")
-        // We ALLOW this to pass to the semantic model.
     }
-    // --- END MODIFICATION ---
    
     // --- Step 2: Call Semantic Matcher (The "Smart" Check) ---
     const semanticResult = await checkSemanticSimilarity(productA.title, productB.title, config);
@@ -196,6 +214,7 @@ async function matchProducts(productA, productB, options = {}) {
     }
 
     // --- Step 2.5: Spec Word Veto (Strict Logic) ---
+    // This now uses the robust regex function
     const specsA = extractSpecWords(productA.title);
     const specsB = extractSpecWords(productB.title);
 
@@ -216,7 +235,32 @@ async function matchProducts(productA, productB, options = {}) {
         }
     }
 
+    // --- Step 2.7: Packaging Veto (Strict Logic) ---
+    // This now uses the robust regex function
+    const pkgA = extractPackagingWords(productA.title);
+    const pkgB = extractPackagingWords(productB.title);
+
+    // Only run check if one title *has* a packaging word.
+    if (pkgA.size > 0 || pkgB.size > 0) {
+        const uniquePkgA = [...pkgA].filter(p => !pkgB.has(p));
+        const uniquePkgB = [...pkgB].filter(p => !pkgA.has(p));
+
+        // Strict Veto: Vetoes if packaging sets are not identical.
+        if (uniquePkgA.length > 0 || uniquePkgB.length > 0) {
+             const pkgVetoResult = {
+                ...baseResult,
+                score: semanticResult.score,
+                method: "packaging-veto",
+                reason: `Packaging sets not identical: A has [${uniquePkgA.join(',') || 'none'}] unique, B has [${uniquePkgB.join(',') || 'none'}] unique`
+            };
+            semanticCache.set(cacheKey, pkgVetoResult);
+            return pkgVetoResult;
+        }
+    }
+
     // --- Step 3: Numeric Veto (Strict Logic) ---
+    // This veto should also catch the "Pack Of 2" example
+    // because numsA={"250"} and numsB={"250", "2"}
     const numberResult = compareNumbers(productA.title, productB.title);
 
     if (!numberResult.match) {

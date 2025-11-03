@@ -2,7 +2,6 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
-  // 👇 THIS IS THE CORRECTED LINE
   content: ["./public/**/*.{html,js}"],
 
   safelist: [

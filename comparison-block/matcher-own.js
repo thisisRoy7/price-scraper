@@ -1,6 +1,5 @@
-// matcher-own.js
+// comparison-block/matcher-own.js
 
-// NO top-level await import. We will import it inside getInstance.
 
 /**
  * A helper function to compute the dot product (cosine similarity for normalized vectors).

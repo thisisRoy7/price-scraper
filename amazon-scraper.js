@@ -48,7 +48,6 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
 
         await productPage.goto(url, { waitUntil: 'domcontentloaded' });
 
-        // --- NEW: Check for Out of Stock ---
         let isOutOfStock = false;
         try {
             const pageContent = await productPage.$eval('body', el => el.innerText.toLowerCase());
@@ -61,12 +60,10 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
         } catch (e) {
             console.log(`   -> Warning: Could not check stock status.`);
         }
-        // --- END: Out of Stock Check ---
 
         const title = await productPage.$eval(titleSelector, el => el.innerText.trim())
           .catch(() => 'N/A');
 
-        // --- UPDATED: Price Logic ---
         let price = 'N/A'; // Default to N/A
         if (isOutOfStock) {
             price = 'N/A';
@@ -75,8 +72,7 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
               .then(p => `₹${p.replace(/[,.]/g, '')}`) // Cleans price
               .catch(() => 'N/A'); // Catches if price selector not found
         }
-        // --- END: Updated Price Logic ---
-
+        
         let image = await productPage.$eval(imageSelector, el => el.src)
           .catch(() => 'N/A');
 

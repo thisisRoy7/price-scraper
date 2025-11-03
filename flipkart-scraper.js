@@ -183,15 +183,12 @@ function findImage($) {
 
             // B) If it's a PRODUCT page
             if (request.userData.label === 'product') {
-                // --- NEW: Check for Out of Stock ---
                 const pageContent = $('body').text().toLowerCase();
                 const outOfStockKeywords = ['out of stock', 'currently unavailable', 'sold out'];
                 const isOutOfStock = outOfStockKeywords.some(keyword => pageContent.includes(keyword));
-                // --- END: Out of Stock Check ---
 
                 const title = findTitle($);
 
-                // --- UPDATED: Price Logic ---
                 let price;
                 if (isOutOfStock) {
                     price = 'N/A';
@@ -199,8 +196,7 @@ function findImage($) {
                 } else {
                     price = findPrice($);
                 }
-                // --- END: Updated Price Logic ---
-
+                
                 const image = findImage($); 
 
                 if (!title || !price || !image) {

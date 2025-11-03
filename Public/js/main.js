@@ -1,6 +1,6 @@
 // Public/js/main.js
 
-import { initVanta, triggerRipple } from './vanta-animation.js';
+import { initVanta } from './vanta-animation.js';
 import { renderResults } from './ui-renderer.js';
 import { performComparison } from './api-handler.js';
 
@@ -28,40 +28,33 @@ window.addEventListener('load', () => {
         progressBarContainer: document.getElementById('progress-bar-container'),
         progressBarInner: document.getElementById('progress-bar-inner'),
     };
-    
-    const RIPPLE_DELAY = 400; // ms to delay task so animation can start
 
     // 3. Set up event listeners
 
-    // The SUBMIT event now ONLY handles the logic, not the UI effect.
+    // The SUBMIT event now directly triggers the comparison.
     elements.form.addEventListener('submit', (e) => {
         e.preventDefault();
-        // Give the ripple animation a moment to play before starting the heavy task
-        setTimeout(() => {
-            performComparison(false, elements, renderResults);
-        }, RIPPLE_DELAY);
+        // Ripple logic and delay removed
+        performComparison(false, elements, renderResults);
     });
 
-    // The CLICK on the compare button triggers the ripple.
-    elements.compareBtn.addEventListener('click', triggerRipple);
+    // The CLICK on the compare button no longer needs its own listener
+    // (it just triggers the form 'submit' event).
 
-    // The CLICK on the refresh button triggers both ripple and logic.
+    // The CLICK on the refresh button triggers the logic directly.
     elements.refreshBtn.addEventListener('click', () => {
-        triggerRipple();
-        // Give the ripple animation a moment to play before starting the heavy task
-        setTimeout(() => {
-            performComparison(true, elements, renderResults);
-        }, RIPPLE_DELAY);
+        // Ripple logic and delay removed
+        performComparison(true, elements, renderResults);
     });
 
-    // The CLICK on a popular search button triggers the ripple and submits the form.
+    // The CLICK on a popular search button submits the form.
     elements.popularSearchesContainer.addEventListener('click', (e) => {
         const button = e.target.closest('.popular-search-btn');
         if (button) {
-            triggerRipple(); // Trigger ripple on physical click
+            // Ripple logic removed
             elements.productNameInput.value = button.textContent;
             // This will trigger the 'submit' event listener on the form
-            elements.form.requestSubmit(); 
+            elements.form.requestSubmit();
         }
     });
 });

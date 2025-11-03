@@ -70,6 +70,11 @@ const STOP_WORDS = new Set(['the', 'new', 'a', 'an', 'for', 'with', 'of']);
 // even if they are attached to letters (like "8GB" or "5mm").
 const NUMBER_REGEX = /\d+(?:\.\d+)?/g;
 
+// --- CHANGE: ADDED THIS REGEX ---
+// This regex finds bundle indicators like ' + ' (a plus sign surrounded by spaces)
+const BUNDLE_SYMBOLS_REGEX = /\s\+\s/g;
+// --- END CHANGE ---
+
 
 // --- 4. Utility Functions (With Additions) ---
 
@@ -107,12 +112,15 @@ function extractSpecWords(title) {
     return foundSpecs;
 }
 
+// --- CHANGE: REPLACED THIS FUNCTION ---
 /**
- * Extracts key packaging words from a title using robust regex.
+ * Extracts key packaging/bundle words and symbols from a title.
  */
 function extractPackagingWords(title) {
     const titleLower = normalize(title);
     const foundPackaging = new Set();
+
+    // 1. Check for word-based packaging
     for (const pkg of PACKAGING_WORDS) {
         // Use a regex with word boundaries (\b)
         // This correctly finds "pack of" in "(pack of 2)"
@@ -121,8 +129,15 @@ function extractPackagingWords(title) {
             foundPackaging.add(pkg);
         }
     }
+
+    // 2. Check for symbol-based bundle indicators
+    if (BUNDLE_SYMBOLS_REGEX.test(titleLower)) {
+        foundPackaging.add('+'); // Add a token for the '+' sign
+    }
+
     return foundPackaging;
 }
+// --- END CHANGE ---
 
 /**
  * Extracts all numbers from two titles and checks for non-identical sets.
@@ -203,7 +218,7 @@ async function matchProducts(productA, productB, options = {}) {
             return brandMismatchResult;
         }
     }
-   
+    
     // --- Step 2: Call Semantic Matcher (The "Smart" Check) ---
     const semanticResult = await checkSemanticSimilarity(productA.title, productB.title, config);
 

@@ -1,9 +1,8 @@
 // server-m.js
 
 const express = require('express');
-// MODIFIED: Import 'spawn' instead of 'exec'
 const { spawn } = require('child_process');
-const { MongoClient } = require('mongodb'); // Use the MongoDB driver
+const { MongoClient } = require('mongodb'); 
 
 const app = express();
 const PORT = 3000;
@@ -18,135 +17,134 @@ app.use(express.json());
 let db;
 let collection;
 (async () => {
-  try {
-    const client = await MongoClient.connect(MONGO_URL);
-    db = client.db(DB_NAME);
-    collection = db.collection(COLLECTION_NAME);
-    console.log(`✅ Connected to MongoDB at ${MONGO_URL}`);
-  } catch (err) {
-    console.error('❌ MongoDB connection failed:', err);
-    process.exit(1);
-  }
+    try {
+        const client = await MongoClient.connect(MONGO_URL);
+        db = client.db(DB_NAME);
+        collection = db.collection(COLLECTION_NAME);
+        console.log(`✅ Connected to MongoDB at ${MONGO_URL}`);
+    } catch (err) {
+        console.error('❌ MongoDB connection failed:', err);
+        process.exit(1);
+    }
 })();
 
-// --- MODIFIED: Switched from exec to spawn ---
 app.post('/compare', async (req, res) => {
-  const { productName, numPages, forceRefresh } = req.body;
-  if (!productName || !numPages) {
-    return res.status(400).json({ error: 'Missing parameters' });
-  }
-
-  try {
-    // 1️⃣ Check cache (no change here)
-    if (!forceRefresh) {
-      const cachedDoc = await collection.findOne({ query: productName });
-      
-      if (cachedDoc) {
-        console.log(`[SERVER] ✅ Cache HIT for "${productName}".`);
-        const cachedData = cachedDoc.results;
-        cachedData.scrapedOn = cachedDoc.last_updated; 
-        cachedData.logs.unshift(`✅ [CACHE HIT] Found previous results for "${productName}".`);
-        return res.json(cachedData);
-      }
+    // MODIFIED: Destructure searchType, defaulting to 'general'
+    const { productName, numPages, forceRefresh, searchType = 'general' } = req.body;
+    if (!productName || !numPages) {
+        return res.status(400).json({ error: 'Missing parameters' });
     }
 
-    console.log(`[SERVER] 🟡 Cache MISS or REFRESH for "${productName}". Running live scrape.`);
+    // MODIFIED: Create a composite cache key
+    const cacheKey = `${productName}_${searchType}`;
 
-    // 2️⃣ Run scraper script using spawn
-    // We use { shell: true } to allow the command to interpret quotes,
-    // just like 'exec' did. This handles spaces in file paths.
-    const command = `node "comparison-block/compare.js" "${productName}" ${numPages}`;
-    console.log(`🚀 Spawning: ${command}`);
-    
-    // Use spawn instead of exec
-    const child = spawn(command, { shell: true });
-
-    let fullStdout = '';
-    let fullStderr = '';
-
-    // Listen to the stdout stream
-    child.stdout.on('data', (data) => {
-      fullStdout += data.toString();
-    });
-
-    // Listen to the stderr stream
-    child.stderr.on('data', (data) => {
-      fullStderr += data.toString();
-    });
-
-    // Handle errors in spawning the process itself
-    child.on('error', (err) => {
-        console.error('Failed to start child process:', err);
-        return res.status(500).json({ error: `Failed to start scraper: ${err.message}` });
-    });
-
-    // Listen for the process to exit
-    child.on('close', async (code) => {
-      // 'code' is the exit code. 0 means success.
-      if (code !== 0) {
-        console.error(`Execution Error (Code ${code}):`, fullStderr);
-        console.log('--- STDOUT (from error) ---');
-        console.log(fullStdout); // Log what we got before it failed
-        console.log('---------------------------');
-        // Send the stderr, which is more likely to contain the *actual* error
-        return res.status(500).json({ error: `Scraper error: ${fullStderr || 'Process exited with non-zero code.'}` });
-      }
-
-      // --- Process Succeeded (code === 0) ---
-      
-      let jsonData;
-      try {
-        // Your "parse last line" logic is perfect.
-        // We just apply it to the *complete* stdout string.
-        const lines = fullStdout.split('\n').filter(line => line.trim() !== '');
-        const lastLine = lines.pop(); 
-
-        if (!lastLine) {
-          console.error('Scraper script gave no output.');
-          return res.status(500).json({ error: 'Scraper script gave no output.' });
+    try {
+        // 1️⃣ Check cache
+        if (!forceRefresh) {
+            // MODIFIED: Use the composite cacheKey
+            const cachedDoc = await collection.findOne({ query: cacheKey });
+            
+            if (cachedDoc) {
+                // MODIFIED: Update log message
+                console.log(`[SERVER] ✅ Cache HIT for "${cacheKey}".`);
+                const cachedData = cachedDoc.results;
+                cachedData.scrapedOn = cachedDoc.last_updated; 
+                cachedData.logs.unshift(`✅ [CACHE HIT] Found previous results for "${productName}" (${searchType}).`);
+                return res.json(cachedData);
+            }
         }
 
-        // 3. Parse *only* the last line
-        jsonData = JSON.parse(lastLine);
+        // MODIFIED: Update log message
+        console.log(`[SERVER] 🟡 Cache MISS or REFRESH for "${cacheKey}". Running live scrape.`);
 
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError.message);
-        console.log('--- FAILED STDOUT (Could not parse as JSON) ---');
-        console.log(fullStdout); // This will show you exactly what the script outputted
-        console.log('------------------------------------------------');
-        return res.status(500).json({ error: 'Invalid JSON from scraper script' });
-      }
+        // 2️⃣ Run scraper script using spawn
 
-      // 3️⃣ Store in MongoDB cache (no change here)
-      try {
-        await collection.updateOne(
-          { query: productName },
-          { 
-            $set: {
-              results: jsonData,
-              last_updated: new Date()
-            } 
-          },
-          { upsert: true }
-        );
-        console.log(`[SERVER] 💾 Scrape results for "${productName}" saved to cache.`);
+        // MODIFIED: Choose script based on searchType
+        const scriptToRun = searchType === 'specific' 
+            ? 'compare-s.js' 
+            : 'compare.js';
+
+        // MODIFIED: Use the scriptToRun variable
+        const command = `node "comparison-block/${scriptToRun}" "${productName}" ${numPages}`;
+        console.log(`🚀 Spawning: ${command}`);
         
-        res.json(jsonData); // Send success response
+        const child = spawn(command, { shell: true });
 
-      } catch (dbError) {
-        console.error('MongoDB Caching Error:', dbError);
-        // Still send the data to the user even if caching failed
-        res.json(jsonData); 
-      }
-    });
+        let fullStdout = '';
+        let fullStderr = '';
 
-  } catch (err) {
-    console.error('Server Error:', err);
-    res.status(500).json({ error: 'An internal server error occurred.' });
-  }
+        child.stdout.on('data', (data) => {
+            fullStdout += data.toString();
+        });
+
+        child.stderr.on('data', (data) => {
+            fullStderr += data.toString();
+        });
+
+        child.on('error', (err) => {
+            console.error('Failed to start child process:', err);
+            return res.status(500).json({ error: `Failed to start scraper: ${err.message}` });
+        });
+
+        child.on('close', async (code) => {
+            if (code !== 0) {
+                console.error(`Execution Error (Code ${code}):`, fullStderr);
+                console.log('--- STDOUT (from error) ---');
+                console.log(fullStdout); 
+                console.log('---------------------------');
+                return res.status(500).json({ error: `Scraper error: ${fullStderr || 'Process exited with non-zero code.'}` });
+            }
+
+            let jsonData;
+            try {
+                const lines = fullStdout.split('\n').filter(line => line.trim() !== '');
+                const lastLine = lines.pop(); 
+
+                if (!lastLine) {
+                    console.error('Scraper script gave no output.');
+                    return res.status(500).json({ error: 'Scraper script gave no output.' });
+                }
+
+                jsonData = JSON.parse(lastLine);
+
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError.message);
+                console.log('--- FAILED STDOUT (Could not parse as JSON) ---');
+                console.log(fullStdout);
+                console.log('------------------------------------------------');
+                return res.status(500).json({ error: 'Invalid JSON from scraper script' });
+            }
+
+            // 3️⃣ Store in MongoDB cache
+            try {
+                await collection.updateOne(
+                    // MODIFIED: Use composite cacheKey
+                    { query: cacheKey },
+                    { 
+                        $set: {
+                            results: jsonData,
+                            last_updated: new Date()
+                        } 
+                    },
+                    { upsert: true }
+                );
+                // MODIFIED: Update log message
+                console.log(`[SERVER] 💾 Scrape results for "${cacheKey}" saved to cache.`);
+                
+                res.json(jsonData); 
+
+            } catch (dbError) {
+                console.error('MongoDB Caching Error:', dbError);
+                res.json(jsonData); 
+            }
+        });
+
+    } catch (err) {
+        console.error('Server Error:', err);
+        res.status(500).json({ error: 'An internal server error occurred.' });
+    }
 });
-// --- END OF MODIFIED BLOCK ---
 
 app.listen(PORT, () => {
-  console.log(`🎉 Server with MongoDB running at http://localhost:${PORT}`);
+    console.log(`🎉 Server with MongoDB running at http://localhost:${PORT}`);
 });

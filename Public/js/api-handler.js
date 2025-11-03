@@ -10,10 +10,15 @@ import { updateStatus } from './progress-bar.js';
  * @param {function} renderResultsFunc - The function to call to render the results grid.
  */
 export const performComparison = async (isRefresh, elements, renderResultsFunc) => {
-    const { productNameInput, numPagesInput, resultsGrid, resultsHeader, cacheInfo, cacheDate, compareBtn, refreshBtn } = elements;
+    // MODIFIED: Destructured searchTypeInput
+    const { productNameInput, numPagesInput, searchTypeInput, resultsGrid, resultsHeader, cacheInfo, cacheDate, compareBtn, refreshBtn } = elements;
     
     const productName = productNameInput.value;
     if (!productName) return;
+
+    // MODIFIED: Read all values from inputs
+    const numPages = numPagesInput.value;
+    const searchType = searchTypeInput.value;
     
     // Reset UI
     resultsGrid.innerHTML = '';
@@ -32,8 +37,9 @@ export const performComparison = async (isRefresh, elements, renderResultsFunc) 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 productName,
-                numPages: numPagesInput.value,
-                forceRefresh: isRefresh
+                numPages: numPages,         // Use the variable
+                forceRefresh: isRefresh,
+                searchType: searchType      // MODIFIED: Added searchType to the request
             }),
         });
 

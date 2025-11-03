@@ -13,6 +13,7 @@ window.addEventListener('load', () => {
         form: document.getElementById('compare-form'),
         productNameInput: document.getElementById('product-name'),
         numPagesInput: document.getElementById('num-pages'),
+        searchTypeInput: document.getElementById('search-type'),
         compareBtn: document.getElementById('compare-btn'),
         loader: document.getElementById('loader'),
         resultsGrid: document.getElementById('results-grid'),
@@ -24,8 +25,8 @@ window.addEventListener('load', () => {
         statusDisplay: document.getElementById('status-display'),
         statusIcon: document.getElementById('status-icon'),
         statusText: document.getElementById('status-text'),
-        progressBarContainer: document.getElementById('progress-bar-container'), // <-- ADD THIS
-        progressBarInner: document.getElementById('progress-bar-inner'),       // <-- ADD THIS
+        progressBarContainer: document.getElementById('progress-bar-container'),
+        progressBarInner: document.getElementById('progress-bar-inner'),
     };
     
     const RIPPLE_DELAY = 400; // ms to delay task so animation can start

@@ -5,7 +5,7 @@ const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-const selectors = require('./selectors.json').amazon; // <-- NEW: Import selectors
+const selectors = require('./selectors.json').amazon; 
 
 puppeteer.use(StealthPlugin());
 
@@ -40,7 +40,7 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
       try {
         productPage = await browser.newPage();
         await productPage.setViewport({ width: 1440, height: 900 });
-        await setupPageInterception(productPage); // Disable CSS
+        await setupPageInterception(productPage);
 
         const titleSelector = selectors.productTitle;
         const priceSelector = selectors.productPrice;
@@ -64,13 +64,13 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
         const title = await productPage.$eval(titleSelector, el => el.innerText.trim())
           .catch(() => 'N/A');
 
-        let price = 'N/A'; // Default to N/A
+        let price = 'N/A';
         if (isOutOfStock) {
             price = 'N/A';
         } else {
             price = await productPage.$eval(priceSelector, el => el.innerText.trim())
-              .then(p => `₹${p.replace(/[,.]/g, '')}`) // Cleans price
-              .catch(() => 'N/A'); // Catches if price selector not found
+              .then(p => `₹${p.replace(/[,.]/g, '')}`) 
+              .catch(() => 'N/A');
         }
         
         let image = await productPage.$eval(imageSelector, el => el.src)
@@ -79,7 +79,7 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
         scrapedData.push({ title, price, image, link: url });
         console.log(`   -> Scraped: ${title.substring(0, 40)}... (Price: ${price})`);
 
-        await delay(Math.floor(Math.random() * 1500) + 500); // Small random delay
+        await delay(Math.floor(Math.random() * 1500) + 500); 
       } catch (err) {
         console.log(`   -> Failed for ${url.substring(0, 60)}... Error: ${err.message}`);
       } finally {
@@ -105,14 +105,23 @@ async function scrapeAmazon(searchTerm, maxPages) {
   console.log(`Starting the scraper for "${searchTerm}" on Amazon...`);
 
   try {
+    // --- UPDATED FOR WINDOWS 11 STABILITY ---
     browser = await puppeteer.launch({
       headless: 'new',
-      args: ['--start-maximized']
+      args: [
+        '--start-maximized',
+        '--disable-gpu',                // Fixes Windows 11 headless crash
+        '--disable-dev-shm-usage',      // Prevents shared memory crashes
+        '--no-sandbox',                 // Critical for portability
+        '--disable-setuid-sandbox',     // Helper for sandbox
+        '--no-zygote'                   // Reduces process overhead
+      ],
+      executablePath: puppeteer.executablePath() // Ensures it uses the installed Puppeteer Chrome
     });
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
-    await setupPageInterception(page); // Disable CSS
+    await setupPageInterception(page);
 
     // Step 1: Navigate and search
     console.log('Step 1: Navigating and searching...');
@@ -136,38 +145,30 @@ async function scrapeAmazon(searchTerm, maxPages) {
 
       console.log('Collecting product links (filtering sponsored)...');
       
-      // --- UPDATED: Logic to filter sponsored links ---
       const productURLs = await page.$$eval(
         selectors.productHeadings,
         (headings) => {
-          // headings is an array of elements matching selectors.productHeadings
           const links = headings.map(h => {
-            // 1. Find the main product card (container) from the heading element 'h'
             const productCard = h.closest('[data-component-type="s-search-result"]'); 
             
             if (!productCard) return null; 
 
-            // 2. Check if this card contains a "sponsored" label.
             const hasSponsoredAttribute = productCard.querySelector('span[data-component-type="s-sponsored-label"]');
             const hasSponsoredText = Array.from(productCard.querySelectorAll('span'))
-                                          .some(span => span.textContent.trim() === 'Sponsored');
+                                             .some(span => span.textContent.trim() === 'Sponsored');
             
-            // 3. If it's sponsored, return null to filter it out.
             if (hasSponsoredAttribute || hasSponsoredText) {
               return null;
             }
 
-            // 4. If not sponsored, get the link.
             return h.closest('a')?.href;
           });
 
-          // 5. Filter out the nulls and process the links
           return links
-            .filter(href => href && href.includes('/dp/')) // Filter nulls and non-product links
+            .filter(href => href && href.includes('/dp/')) 
             .map(href => (href.startsWith('http') ? href : `https://www.amazon.in${href}`));
         }
       );
-      // --- END: Updated Logic ---
 
       console.log(`Found ${productURLs.length} non-sponsored product links on this page.`);
 
@@ -176,7 +177,6 @@ async function scrapeAmazon(searchTerm, maxPages) {
         allScrapedData = allScrapedData.concat(scrapedData);
       }
 
-      // Navigate to next page if exists
       if (currentPage < maxPages) {
         const nextButton = await page.$(selectors.nextPageButton);
 

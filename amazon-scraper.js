@@ -1,4 +1,4 @@
-//amazon-scraper.js
+// amazon-scraper.js
 
 const fs = require('fs');
 const path = require('path');
@@ -18,7 +18,9 @@ function delay(time) {
 async function setupPageInterception(page) {
   await page.setRequestInterception(true);
   page.on('request', (req) => {
-    if (req.resourceType() === 'stylesheet') {
+    // Sometimes blocking CSS triggers bot detection on Amazon. 
+    // If you see CAPTCHAs, comment out this 'if' block and just use req.continue()
+    if (req.resourceType() === 'stylesheet' || req.resourceType() === 'font') {
       req.abort();
     } else {
       req.continue();
@@ -40,13 +42,14 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
       try {
         productPage = await browser.newPage();
         await productPage.setViewport({ width: 1440, height: 900 });
-        await setupPageInterception(productPage);
+        // NOTE: We do NOT use interception on product pages to reduce bot detection risk
+        // await setupPageInterception(productPage); 
 
         const titleSelector = selectors.productTitle;
         const priceSelector = selectors.productPrice;
         const imageSelector = selectors.productImage;
 
-        await productPage.goto(url, { waitUntil: 'domcontentloaded' });
+        await productPage.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
         let isOutOfStock = false;
         try {
@@ -79,9 +82,9 @@ async function scrapeProductsConcurrently(browser, productURLs, concurrency = 5)
         scrapedData.push({ title, price, image, link: url });
         console.log(`   -> Scraped: ${title.substring(0, 40)}... (Price: ${price})`);
 
-        await delay(Math.floor(Math.random() * 1500) + 500); 
+        await delay(Math.floor(Math.random() * 2000) + 1000); 
       } catch (err) {
-        console.log(`   -> Failed for ${url.substring(0, 60)}... Error: ${err.message}`);
+        console.log(`   -> Failed for ${url.substring(0, 30)}... Error: ${err.message}`);
       } finally {
         if (productPage) {
           await productPage.close();
@@ -105,63 +108,86 @@ async function scrapeAmazon(searchTerm, maxPages) {
   console.log(`Starting the scraper for "${searchTerm}" on Amazon...`);
 
   try {
-    // --- UPDATED FOR WINDOWS 11 STABILITY ---
     browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true, 
       args: [
         '--start-maximized',
-        '--disable-gpu',                // Fixes Windows 11 headless crash
-        '--disable-dev-shm-usage',      // Prevents shared memory crashes
-        '--no-sandbox',                 // Critical for portability
-        '--disable-setuid-sandbox',     // Helper for sandbox
-        '--no-zygote'                   // Reduces process overhead
+        '--disable-gpu',
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
       ],
-      executablePath: puppeteer.executablePath() // Ensures it uses the installed Puppeteer Chrome
+      executablePath: puppeteer.executablePath()
     });
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
-    await setupPageInterception(page);
-
+    
     // Step 1: Navigate and search
     console.log('Step 1: Navigating and searching...');
-    await page.goto('https://www.amazon.in', { waitUntil: 'domcontentloaded' });
-    await delay(Math.random() * 2000 + 1000);
+    await page.goto('https://www.amazon.in', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await delay(2000);
 
-    await page.waitForSelector(selectors.searchInput);
-    await page.type(selectors.searchInput, searchTerm, { delay: 150 });
-    await page.hover(selectors.searchButton);
-    await page.click(selectors.searchButton);
-    
-    await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    // Check if we hit a CAPTCHA immediately
+    const isCaptcha = await page.$('input#captchacharacters');
+    if (isCaptcha) {
+        console.log("❌ CAPTCHA DETECTED! Please solve it manually in the browser window.");
+        await page.waitForNavigation({ timeout: 120000 }); // Give you 2 mins to solve
+    }
+
+    try {
+        await page.waitForSelector(selectors.searchInput, { timeout: 10000 });
+        await page.type(selectors.searchInput, searchTerm, { delay: 100 });
+        await page.click(selectors.searchButton);
+        await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    } catch (e) {
+        console.log("⚠️ Search input not found. You might be on a bot detection page.");
+    }
 
     // Step 2: Loop through pages
     for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
       console.log(`\nScraping Page ${currentPage} of ${maxPages}...`);
 
-      await page.waitForSelector(selectors.searchResultsContainer, { timeout: 20000 });
-      await page.evaluate(() => { window.scrollBy(0, window.innerHeight * Math.random()); });
-      await delay(1000);
-
-      console.log('Collecting product links (filtering sponsored)...');
+      // Increase timeout for slow connections
+      try {
+          await page.waitForSelector(selectors.searchResultsContainer, { timeout: 15000 });
+      } catch (e) {
+          console.log("❌ Could not find search results container. Amazon might have blocked the request or changed layout.");
+          break;
+      }
       
+      await page.evaluate(() => { window.scrollBy(0, window.innerHeight); });
+      await delay(2000);
+
+      console.log('Collecting product links...');
+      
+      // --- DEBUG: Count raw headings first ---
+      const rawHeadingsCount = await page.$$eval(selectors.productHeadings, els => els.length);
+      console.log(`   -> Debug: Found ${rawHeadingsCount} raw heading elements.`);
+
       const productURLs = await page.$$eval(
         selectors.productHeadings,
         (headings) => {
           const links = headings.map(h => {
-            const productCard = h.closest('[data-component-type="s-search-result"]'); 
+            // --- FIX: Robust Container Selection ---
+            // 1. Try specific data attribute
+            let productCard = h.closest('[data-component-type="s-search-result"]');
+            // 2. Fallback to generic class if specific one fails
+            if (!productCard) productCard = h.closest('.s-result-item');
             
             if (!productCard) return null; 
 
-            const hasSponsoredAttribute = productCard.querySelector('span[data-component-type="s-sponsored-label"]');
-            const hasSponsoredText = Array.from(productCard.querySelectorAll('span'))
-                                             .some(span => span.textContent.trim() === 'Sponsored');
+            // Sponsored Check
+            const sponsoredSpan = productCard.querySelector('span[data-component-type="s-sponsored-label"]');
+            const sponsoredText = Array.from(productCard.querySelectorAll('span'))
+                                       .some(span => span.textContent.trim() === 'Sponsored');
             
-            if (hasSponsoredAttribute || hasSponsoredText) {
+            if (sponsoredSpan || sponsoredText) {
               return null;
             }
 
-            return h.closest('a')?.href;
+            // Get Link
+            const anchor = h.closest('a');
+            return anchor ? anchor.href : null;
           });
 
           return links
@@ -170,25 +196,25 @@ async function scrapeAmazon(searchTerm, maxPages) {
         }
       );
 
-      console.log(`Found ${productURLs.length} non-sponsored product links on this page.`);
+      console.log(`   -> Found ${productURLs.length} valid (non-sponsored) product links.`);
 
       if (productURLs.length > 0) {
         const scrapedData = await scrapeProductsConcurrently(browser, productURLs, 5);
         allScrapedData = allScrapedData.concat(scrapedData);
       }
 
+      // Check for Next button
       if (currentPage < maxPages) {
         const nextButton = await page.$(selectors.nextPageButton);
-
         if (nextButton) {
-          console.log('\nNavigating to the next page...');
+          console.log('Navigating to next page...');
           await Promise.all([
             page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
             nextButton.click()
           ]);
-          await delay(Math.random() * 2000 + 1000);
+          await delay(3000);
         } else {
-          console.log('No "Next" button found. Reached last page.');
+          console.log('No "Next" button found. Finished.');
           break;
         }
       }
@@ -197,7 +223,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
     return allScrapedData;
 
   } catch (error) {
-    console.error("A critical error occurred:", error);
+    console.error("❌ A critical error occurred:", error);
     return allScrapedData;
   } finally {
     if (browser) {
@@ -209,15 +235,16 @@ async function scrapeAmazon(searchTerm, maxPages) {
 
 // Save data to CSV
 async function saveToCsv(data, searchTerm) {
-  if (data.length === 0) {
-    console.log("No data to save.");
-    return;
+  // --- FIX: Create directory if it doesn't exist (safety check) ---
+  const outputDir = path.join(__dirname, 'amazon_results'); 
+  if (!fs.existsSync(outputDir)){
+      fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const outputDir = 'amazon_results';
-  fs.mkdirSync(outputDir, { recursive: true });
   const filename = `scraped_amazon_${searchTerm.replace(/\s+/g, '_')}.csv`;
   const filePath = path.join(outputDir, filename);
+
+  console.log(`Attempting to save CSV to: ${filePath}`);
 
   const csvWriter = createCsvWriter({
     path: filePath,
@@ -232,9 +259,9 @@ async function saveToCsv(data, searchTerm) {
 
   try {
     await csvWriter.writeRecords(data);
-    console.log(`\nSuccess! Data saved to ${filePath}`);
+    console.log(`✅ Success! Data saved to ${filePath}`);
   } catch (error) {
-    console.error("Error writing to CSV:", error);
+    console.error("❌ Error writing to CSV:", error);
   }
 }
 
@@ -243,26 +270,23 @@ async function saveToCsv(data, searchTerm) {
   const args = process.argv.slice(2);
 
   if (args.length !== 2) {
-    console.error('Incorrect number of arguments!');
-    console.log('Usage: node amazon_scraper.js "<Search Term>" <NumberOfPages>');
+    console.error('Usage: node amazon-scraper.js "<Search Term>" <NumberOfPages>');
     process.exit(1);
   }
 
   const [SEARCH_TERM, MAX_PAGES_STR] = args;
   const MAX_PAGES = parseInt(MAX_PAGES_STR, 10);
 
-  if (isNaN(MAX_PAGES) || MAX_PAGES < 1) {
-    console.error('Error: Number of pages must be a positive number.');
-    process.exit(1);
-  }
-
   const scrapedData = await scrapeAmazon(SEARCH_TERM, MAX_PAGES);
 
+  // --- FIX: Even if length is 0, we log clearly why ---
   if (scrapedData.length > 0) {
     console.log("\n--- FINAL SCRAPED DATA ---");
-    console.table(scrapedData);
+    // console.table(scrapedData); // Optional: Comment out if table is too huge
     await saveToCsv(scrapedData, SEARCH_TERM);
   } else {
-    console.log("\nNo data was scraped. The bot was likely blocked or no products were found.");
+    console.log("\n❌ No data was scraped.");
+    console.log("   Possible reasons: Amazon CAPTCHA, Selector mismatch, or 0 search results.");
+    // We do NOT save an empty CSV, as that breaks the reader script.
   }
 })();

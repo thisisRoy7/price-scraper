@@ -168,7 +168,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
         selectors.productHeadings,
         (headings) => {
           const links = headings.map(h => {
-            // --- FIX: Robust Container Selection ---
+            // --- Robust Container Selection ---
             // 1. Try specific data attribute
             let productCard = h.closest('[data-component-type="s-search-result"]');
             // 2. Fallback to generic class if specific one fails
@@ -235,7 +235,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
 
 // Save data to CSV
 async function saveToCsv(data, searchTerm) {
-  // --- FIX: Create directory if it doesn't exist (safety check) ---
+  // --- Create directory if it doesn't exist (safety check) ---
   const outputDir = path.join(__dirname, 'amazon_results'); 
   if (!fs.existsSync(outputDir)){
       fs.mkdirSync(outputDir, { recursive: true });
@@ -279,7 +279,7 @@ async function saveToCsv(data, searchTerm) {
 
   const scrapedData = await scrapeAmazon(SEARCH_TERM, MAX_PAGES);
 
-  // --- FIX: Even if length is 0, we log clearly why ---
+  // --- Even if length is 0, we log clearly why ---
   if (scrapedData.length > 0) {
     console.log("\n--- FINAL SCRAPED DATA ---");
     // console.table(scrapedData); // Optional: Comment out if table is too huge

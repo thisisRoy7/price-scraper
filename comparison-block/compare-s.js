@@ -6,7 +6,7 @@ const csv = require('csv-parser');
 const path = require('path');
 
 // --- CONFIGURATION ---
-const MATCH_THRESHOLD = 0.5; // 50% match required
+const MATCH_THRESHOLD = 0.5; // % match required
 
 async function main() {
     const output = {

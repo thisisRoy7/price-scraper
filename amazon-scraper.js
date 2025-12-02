@@ -130,7 +130,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
     // Check if we hit a CAPTCHA immediately
     const isCaptcha = await page.$('input#captchacharacters');
     if (isCaptcha) {
-        console.log("❌ CAPTCHA DETECTED! Please solve it manually in the browser window.");
+        console.log("  CAPTCHA DETECTED! Please solve it manually in the browser window.");
         await page.waitForNavigation({ timeout: 120000 }); // Give you 2 mins to solve
     }
 
@@ -140,7 +140,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
         await page.click(selectors.searchButton);
         await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
     } catch (e) {
-        console.log("⚠️ Search input not found. You might be on a bot detection page.");
+        console.log("  Search input not found. You might be on a bot detection page.");
     }
 
     // Step 2: Loop through pages
@@ -151,7 +151,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
       try {
           await page.waitForSelector(selectors.searchResultsContainer, { timeout: 15000 });
       } catch (e) {
-          console.log("❌ Could not find search results container. Amazon might have blocked the request or changed layout.");
+          console.log("  Could not find search results container. Amazon might have blocked the request or changed layout.");
           break;
       }
       
@@ -223,7 +223,7 @@ async function scrapeAmazon(searchTerm, maxPages) {
     return allScrapedData;
 
   } catch (error) {
-    console.error("❌ A critical error occurred:", error);
+    console.error("  A critical error occurred:", error);
     return allScrapedData;
   } finally {
     if (browser) {
@@ -259,9 +259,9 @@ async function saveToCsv(data, searchTerm) {
 
   try {
     await csvWriter.writeRecords(data);
-    console.log(`✅ Success! Data saved to ${filePath}`);
+    console.log(` Success! Data saved to ${filePath}`);
   } catch (error) {
-    console.error("❌ Error writing to CSV:", error);
+    console.error("  Error writing to CSV:", error);
   }
 }
 
@@ -285,7 +285,7 @@ async function saveToCsv(data, searchTerm) {
     // console.table(scrapedData); // Optional: Comment out if table is too huge
     await saveToCsv(scrapedData, SEARCH_TERM);
   } else {
-    console.log("\n❌ No data was scraped.");
+    console.log("\n  No data was scraped.");
     console.log("   Possible reasons: Amazon CAPTCHA, Selector mismatch, or 0 search results.");
     // We do NOT save an empty CSV, as that breaks the reader script.
   }

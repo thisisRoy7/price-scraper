@@ -37,7 +37,7 @@ async function main() {
         const flipkartScript = path.join(__dirname, '..', 'flipkart-scraper.js');
 
         // --- 2. RUN SCRAPERS ---
-        output.logs.push('🚀 Spawning scrapers for Page 1...');
+        output.logs.push('  Spawning scrapers for Page 1...');
 
         await Promise.allSettled([
             runScraper(amazonScript, cleanQueryForScraping, numPages),
@@ -48,7 +48,7 @@ async function main() {
         const amazonData = await readCsv(amazonFile);
         const flipkartData = await readCsv(flipkartFile);
 
-        output.logs.push(`📊 Scraped: Amazon (${amazonData.length} items), Flipkart (${flipkartData.length} items).`);
+        output.logs.push(`  Scraped: Amazon (${amazonData.length} items), Flipkart (${flipkartData.length} items).`);
 
         // --- 4. FIND BEST MATCHES ---
         const bestAmazon = findBestMatch(rawQuery, amazonData, 'Amazon', output.logs);
@@ -96,7 +96,7 @@ async function main() {
         output.results.push(finalResult);
 
     } catch (error) {
-        output.logs.push(`❌ Critical Error: ${error.message}`);
+        output.logs.push(`  Critical Error: ${error.message}`);
     } finally {
         // --- FIX: Single line stringify for server-m.js compatibility ---
         console.log(JSON.stringify(output));
@@ -125,16 +125,16 @@ function findBestMatch(userQuery, productList, platformName, logs) {
     });
 
     if (bestItem) {
-        logs.push(`✅ [${platformName}] Best Match: "${bestItem.title.substring(0, 40)}..." (Score: ${(maxScore*100).toFixed(0)}%)`);
+        logs.push(`  [${platformName}] Best Match: "${bestItem.title.substring(0, 40)}..." (Score: ${(maxScore*100).toFixed(0)}%)`);
     } else {
-        logs.push(`⚠️ [${platformName}] No products found in CSV.`);
+        logs.push(`  [${platformName}] No products found in CSV.`);
     }
 
     if (maxScore >= MATCH_THRESHOLD) {
         return { ...bestItem, score: maxScore };
     }
     
-    logs.push(`❌ [${platformName}] Match score (${(maxScore*100).toFixed(0)}%) below threshold.`);
+    logs.push(`  [${platformName}] Match score (${(maxScore*100).toFixed(0)}%) below threshold.`);
     return null;
 }
 

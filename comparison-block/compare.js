@@ -31,7 +31,7 @@ async function main() {
         const amazonFile = path.join(__dirname, '..', 'amazon_results', `scraped_amazon_${sanitizedProductName}.csv`);
         const flipkartFile = path.join(__dirname, '..', 'flipkart_results', `scraped_flipkart_${sanitizedProductName}.csv`);
 
-        output.logs.push('🚀 Starting scrapers for Amazon and Flipkart...');
+        output.logs.push('  Starting scrapers for Amazon and Flipkart...');
 
         // --- Script Commands ---
         
@@ -46,12 +46,12 @@ async function main() {
             runScript(flipkartCommand)
         ]);
 
-        output.logs.push('✅ Scrapers finished. Reading result files...');
+        output.logs.push('  Scrapers finished. Reading result files...');
 
         const amazonData = await readCsv(amazonFile);
         const flipkartData = await readCsv(flipkartFile);
 
-        output.logs.push(`📊 Found ${amazonData.length} products on Amazon and ${flipkartData.length} products on Flipkart.`);
+        output.logs.push(`  Found ${amazonData.length} products on Amazon and ${flipkartData.length} products on Flipkart.`);
 
         let commonProductsFound = 0;
         for (const flipkartProduct of flipkartData) {
@@ -94,7 +94,7 @@ async function main() {
         }
 
     } catch (error) {
-        output.logs.push(`❌ An error occurred: ${error.message}`);
+        output.logs.push(`  An error occurred: ${error.message}`);
     } finally {
         // Print the single-line JSON output for the server
         console.log(JSON.stringify(output));

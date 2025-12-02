@@ -25,10 +25,10 @@ let collection = null;
         const client = await MongoClient.connect(MONGO_URL, { serverSelectionTimeoutMS: 2000 });
         db = client.db(DB_NAME);
         collection = db.collection(COLLECTION_NAME);
-        console.log(`✅ Connected to MongoDB at ${MONGO_URL}`);
+        console.log(`Connected to MongoDB at ${MONGO_URL}`);
     } catch (err) {
-        console.log('⚠️  WARNING: MongoDB connection failed or MongoDB is not installed.');
-        console.log('   The application will run in "No-Cache Mode".');
+        console.log('WARNING: MongoDB connection failed or MongoDB is not installed.');
+        console.log('The application will run in "No-Cache Mode".');
     }
 })();
 
@@ -48,10 +48,10 @@ app.post('/compare', async (req, res) => {
             try {
                 const cachedDoc = await collection.findOne({ query: cacheKey });
                 if (cachedDoc) {
-                    console.log(`[SERVER] ✅ Cache HIT for "${cacheKey}".`);
+                    console.log(`[SERVER] Cache HIT for "${cacheKey}".`);
                     const cachedData = cachedDoc.results;
                     cachedData.scrapedOn = cachedDoc.last_updated;
-                    cachedData.logs.unshift(`✅ [CACHE HIT] Found previous results for "${productName}" (${searchType}).`);
+                    cachedData.logs.unshift(` [CACHE HIT] Found previous results for "${productName}" (${searchType}).`);
                     return res.json(cachedData);
                 }
             } catch (cacheErr) {
@@ -59,7 +59,7 @@ app.post('/compare', async (req, res) => {
             }
         }
 
-        console.log(`[SERVER] 🟡 Cache MISS or REFRESH for "${cacheKey}". Running live scrape.`);
+        console.log(`[SERVER]  Cache MISS or REFRESH for "${cacheKey}". Running live scrape.`);
 
         // 2️⃣ Run scraper script using spawn
         const scriptToRun = searchType === 'specific' 
@@ -74,7 +74,7 @@ app.post('/compare', async (req, res) => {
         // so it types the correct thing into the Amazon search bar.
         const command = `"${nodeExecutable}" "${scriptPath}" "${productName}" ${numPages}`;
         
-        console.log(`🚀 Spawning: ${command}`);
+        console.log(`  Spawning: ${command}`);
 
         const child = spawn(command, { shell: true, windowsHide: true });
 
@@ -122,7 +122,7 @@ app.post('/compare', async (req, res) => {
                         },
                         { upsert: true }
                     );
-                    console.log(`[SERVER] 💾 Scrape results for "${cacheKey}" saved to cache.`);
+                    console.log(`[SERVER] Scrape results for "${cacheKey}" saved to cache.`);
                 } catch (dbError) {
                     console.error('MongoDB Caching Error:', dbError.message);
                 }
@@ -138,5 +138,5 @@ app.post('/compare', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🎉 Server running at http://localhost:${PORT}`);
+    console.log(` Server running at http://localhost:${PORT}`);
 });
